@@ -1,0 +1,95 @@
+{
+  "name": "@teamwork/vue-dropdown-directive",
+  "version": "2.2.0",
+  "description": "A vue.js directive for handling dropdowns",
+  "author": "Mattia Uggè (matcmd) <mattia.ugge@teamwork.com>",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "npm run lint && npm run test:unit && vue-cli-service build",
+    "build:npm": "npm run lint && npm run test:unit && vue-cli-service build --target lib --name vue-dropdown-directive src/Dropdown.directive.js",
+    "test:unit": "vue-cli-service test:unit",
+    "lint": "vue-cli-service lint"
+  },
+  "main": "dist/vue-dropdown-directive.umd.js",
+  "unpkg": "dist/vue-dropdown-directive.umd.min.js",
+  "dependencies": {
+    "core-js": "^3.6.4",
+    "debounce": "^1.2.0",
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.2.0",
+    "@vue/cli-plugin-eslint": "~4.2.0",
+    "@vue/cli-plugin-unit-jest": "^4.2.3",
+    "@vue/cli-service": "~4.2.0",
+    "@vue/eslint-config-airbnb": "^5.0.2",
+    "@vue/test-utils": "1.0.0-beta.31",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-vue": "^6.1.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/strongly-recommended",
+      "@vue/airbnb"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {
+      "max-len": 0,
+      "consistent-return": "off",
+      "no-param-reassign": "off",
+      "no-unused-expressions": "off"
+    },
+    "overrides": [
+      {
+        "files": [
+          "**/__tests__/*.{j,t}s?(x)",
+          "**/tests/unit/**/*.spec.{j,t}s?(x)"
+        ],
+        "env": {
+          "jest": true
+        }
+      }
+    ]
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ],
+  "bugs": {
+    "url": "https://github.com/Teamwork/vue-dropdown-directive/issues"
+  },
+  "contributors": [
+    "Vladimir Shafikov <vladimir.shafikov@teamwork.com>"
+  ],
+  "gitHooks": {
+    "pre-commit": "vue-cli-service lint"
+  },
+  "homepage": "https://github.com/Teamwork/vue-dropdown-directive#readme",
+  "keywords": [
+    "directive",
+    "dropdown",
+    "vue.js",
+    "vue",
+    "teamwork"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Teamwork/vue-dropdown-directive.git"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist/*"
+  ]
+}
