@@ -418,12 +418,12 @@ const applyOverflowToElementContent = (element, height) => {
 
 const resetElementPosition = (element) => {
   if (!element || !element.style) { return; }
-  element.style.top = 'unset';
-  element.style.left = 'unset';
-  element.style.right = 'unset';
-  element.style.bottom = 'unset';
-  element.style.width = 'inherit';
-  element.style.maxWidth = 'inherit';
+  element.style.top = '';
+  element.style.left = '';
+  element.style.right = '';
+  element.style.bottom = '';
+  element.style.width = '';
+  element.style.maxWidth = '';
 };
 
 const resetElementContentHeight = (element) => {
@@ -438,7 +438,7 @@ const applyTouchScreensCoordinates = (element, elementContent, coordinates) => {
   element.style.right = `${coordinates.right}px`;
   element.style.bottom = `${coordinates.bottom}px`;
   element.style.width = 'auto';
-  element.style.maxWidth = 'unset';
+  element.style.maxWidth = '';
   applyOverflowToElementContent(elementContent, coordinates.contentHeight);
 };
 
