@@ -38,9 +38,9 @@ const isElementInViewportRoom = ({
   right,
 }, viewportRoom) => (
   (top - window.pageYOffset) >= viewportRoom.top
-  && (left - window.pageXOffset) >= viewportRoom.left
-  && (bottom - window.pageYOffset) <= viewportRoom.bottom
-  && (right - window.pageXOffset) <= viewportRoom.right
+    && (left - window.pageXOffset) >= viewportRoom.left
+    && (bottom - window.pageYOffset) <= viewportRoom.bottom
+    && (right - window.pageXOffset) <= viewportRoom.right
 );
 
 const isElementInHorizonalViewportRoom = ({
@@ -48,7 +48,7 @@ const isElementInHorizonalViewportRoom = ({
   right,
 }, viewportRoom) => (
   (left - window.pageXOffset) >= viewportRoom.left
-  && (right - window.pageXOffset) <= viewportRoom.right
+    && (right - window.pageXOffset) <= viewportRoom.right
 );
 
 const applyOverflowModifierToElement = (element, modifier) => ({ ...element, ...modifier });
@@ -104,6 +104,14 @@ const getViewportRooms = (trigger, viewport) => ({
     width: viewport.width - trigger.right,
     top: 0,
     left: trigger.right,
+    right: viewport.width,
+    bottom: viewport.height,
+  },
+  center: {
+    height: viewport.height,
+    width: viewport.width,
+    top: 0,
+    left: 0,
     right: viewport.width,
     bottom: viewport.height,
   },
@@ -275,6 +283,28 @@ const mapCoordinatesToRightPosition = ({
   };
 };
 
+const mapCoordinatesToCenterPosition = ({
+  elementRect,
+  triggerRect,
+  contentExtraHeight,
+}, viewport) => {
+  const verticalTreshold = getThresholdInPixels(viewport.height);
+  const horizontalTreshold = getThresholdInPixels(viewport.width);
+  const elementCoordinates = {
+    top: (viewport.height - elementRect.height) / 2,
+    left: horizontalTreshold,
+    right: horizontalTreshold,
+  };
+  const bottom = elementCoordinates.top + elementRect.height;
+  const viewportRoom = getViewportRooms(triggerRect, viewport).center;
+  const shouldNotOverflow = isElementInViewportRoom({ ...elementCoordinates, bottom }, viewportRoom);
+  if (shouldNotOverflow) { return elementCoordinates; }
+  elementCoordinates.top = verticalTreshold;
+  elementCoordinates.bottom = verticalTreshold;
+  elementCoordinates.contentHeight = viewport.height - contentExtraHeight - elementCoordinates.top - elementCoordinates.bottom;
+  return elementCoordinates;
+};
+
 const mapCoordinatesToCollocation = (rect, customOffset, collocation, viewport) => {
   const totalOffset = getTotalOffset(customOffset, getArrowOffset(rect.arrowRect));
   const viewportRoom = getViewportRooms(rect.triggerRect, viewport)[collocation.position];
@@ -315,10 +345,10 @@ const getCollocationWithCoordinates = (rect, offset, askedCollocation, collocati
     const firstAvailableCollocationByPosition = availableCollocations
       .find((collocation) => checkCollocationPosition(collocation, askedCollocation));
     const firstAvailableCollocationByAvailableSpace = availableCollocations[0];
-    const selectedAavailableCollocation = firstAvailableCollocationByPositionAndAlignment
-    || firstAvailableCollocationByPosition
-    || firstAvailableCollocationByAvailableSpace;
-    return selectedAavailableCollocation;
+    const selectedAvailableCollocation = firstAvailableCollocationByPositionAndAlignment
+      || firstAvailableCollocationByPosition
+      || firstAvailableCollocationByAvailableSpace;
+    return selectedAvailableCollocation;
   }
 
   if (availableCollocationsInOverflowMode.length) {
@@ -327,10 +357,10 @@ const getCollocationWithCoordinates = (rect, offset, askedCollocation, collocati
     const firstAvailableCollocationByPosition = availableCollocationsInOverflowMode
       .find((collocation) => checkCollocationPosition(collocation, askedCollocation));
     const firstAvailableCollocationByAvailableSpace = availableCollocationsInOverflowMode[0];
-    const selectedAavailableCollocation = firstAvailableCollocationByPositionAndAlignment
+    const selectedAvailableCollocation = firstAvailableCollocationByPositionAndAlignment
       || firstAvailableCollocationByPosition
       || firstAvailableCollocationByAvailableSpace;
-    return mapOverflowModifierTo(selectedAavailableCollocation);
+    return mapOverflowModifierTo(selectedAvailableCollocation);
   }
 };
 
@@ -381,14 +411,35 @@ const applyCoordinatesToElement = (element, coordinates) => {
 };
 
 const applyOverflowToElementContent = (element, height) => {
-  if (!element || !element.style) { return; }
+  if (!element || !element.style || !height) { return; }
   element.style.height = `${height}px`;
   element.style.overflowY = 'auto';
+};
+
+const resetElementPosition = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.top = '';
+  element.style.left = '';
+  element.style.right = '';
+  element.style.bottom = '';
+  element.style.width = '';
+  element.style.maxWidth = '';
 };
 
 const resetElementContentHeight = (element) => {
   if (!element || !element.style) { return; }
   element.style.height = 'auto';
+};
+
+const applyTouchScreensCoordinates = (element, elementContent, coordinates) => {
+  if (!element || !element.style) { return; }
+  element.style.top = `${coordinates.top}px`;
+  element.style.left = `${coordinates.left}px`;
+  element.style.right = `${coordinates.right}px`;
+  element.style.bottom = `${coordinates.bottom}px`;
+  element.style.width = 'auto';
+  element.style.maxWidth = '';
+  applyOverflowToElementContent(elementContent, coordinates.contentHeight);
 };
 
 const applyTresholdToCoordinates = (coordinates, viewport) => {
@@ -490,9 +541,10 @@ const collocateElementAt = ({
   trigger,
   arrow,
   elementContent,
-} = {}, offset = 0, askedCollocation, availableCollocations) => {
+} = {}, offset = 0, askedCollocation, availableCollocations, hasTouchSupport) => {
   if (!element || !trigger) { return false; }
   resetElementContentHeight(elementContent);
+  if (hasTouchSupport) { resetElementPosition(element); }
   const elementRect = element.getBoundingClientRect();
   const triggerRect = trigger.getBoundingClientRect();
   const viewport = {
@@ -505,6 +557,11 @@ const collocateElementAt = ({
     arrowRect: arrow,
     contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
   };
+  if (hasTouchSupport) {
+    const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, viewport);
+    applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
+    return true;
+  }
   const collocationWithCoordinates = getCollocationWithCoordinates(rect, offset, askedCollocation, availableCollocations, viewport);
   if (!collocationWithCoordinates) { return false; }
   applyCoordinates(element, arrow, elementContent, collocationWithCoordinates.coordinates, viewport);

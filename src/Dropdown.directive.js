@@ -5,6 +5,8 @@ import {
   getRequestedCollocation,
 } from './collocateElement.utility';
 
+const hasTouchSupport = ('ontouchstart' in document.documentElement);
+
 const moveElementFromOriginalPlaceToBodyRoot = (element) => {
   const hasElementMoved = element.getAttribute('has-element-moved') === 'true';
   if (!element || !element.id || hasElementMoved) { return; }
@@ -90,13 +92,13 @@ const closeOtherDropdowns = (currentDropdown) => {
   dropdowns?.filter(filterByCurrentDropdown).forEach(closeDropdown);
 };
 
-const attachListeners = (temporaryHideAllDropdownsRef, hasTouchSupport) => {
+const attachListeners = (temporaryHideAllDropdownsRef) => {
   document.addEventListener('click', closeAllDropdowns);
   document.body.addEventListener('click', closeAllDropdowns);
   document.addEventListener('keyup', closeDropdownsOnEscKey);
   document.body.addEventListener('keyup', closeDropdownsOnEscKey);
-  document.addEventListener('scroll', temporaryHideAllDropdownsRef, true);
   if (hasTouchSupport) { return; }
+  document.addEventListener('scroll', temporaryHideAllDropdownsRef, true);
   window.addEventListener('resize', temporaryHideAllDropdownsRef);
 };
 
@@ -109,18 +111,23 @@ const detachListeners = (temporaryHideAllDropdownsRef) => {
   window.removeEventListener('resize', temporaryHideAllDropdownsRef);
 };
 
-const openDropdown = ({ dropdown, arrow, scrollableContentClassName }, {
+const openDropdown = ({
+  dropdown, arrow, backgroundMask, scrollableContentClassName,
+}, {
   offset,
   collocation,
   availableCollocations,
   onOpen,
   keepOthersOpen,
   temporaryHideAllDropdownsRef,
-  hasTouchSupport,
 }, trigger) => {
   if (!keepOthersOpen) { dropdown.closeOthers?.(); }
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (isDropdownOpen) { return; }
+  if (backgroundMask.element) {
+    document.body.appendChild(backgroundMask.element);
+    backgroundMask.element.style.display = 'block';
+  }
   dropdown.setAttribute('open', true);
   moveElementFromOriginalPlaceToBodyRoot(dropdown);
   dropdown.style.display = 'block';
@@ -133,18 +140,22 @@ const openDropdown = ({ dropdown, arrow, scrollableContentClassName }, {
     element: dropdown,
     elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
     arrow,
-  }, offset, collocation, availableCollocations);
+  }, offset, collocation, availableCollocations, hasTouchSupport);
   if (!isCollocated) {
     trigger.click?.();
     return;
   }
-  attachListeners(temporaryHideAllDropdownsRef, hasTouchSupport);
+  attachListeners(temporaryHideAllDropdownsRef);
   onOpen?.();
 };
 
-const closeDropdown = ({ dropdown, arrow }, { onClose, temporaryHideAllDropdownsRef }, keepListenersAttached) => {
+const closeDropdown = ({ dropdown, arrow, backgroundMask }, { onClose, temporaryHideAllDropdownsRef }, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
+  if (backgroundMask.element) {
+    backgroundMask.element.parentNode.removeChild(backgroundMask.element);
+    backgroundMask.element.style.display = 'none';
+  }
   dropdown.setAttribute('open', false);
   moveElementBackToOriginalPlace(dropdown);
   dropdown.style.display = 'none';
@@ -174,9 +185,26 @@ const recalculateDropdownPosition = ({ dropdown, arrow, scrollableContentClassNa
     element: dropdown,
     elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
     arrow,
-  }, extra.offset, extra.collocation, extra.availableCollocations);
+  }, extra.offset, extra.collocation, extra.availableCollocations, hasTouchSupport);
   if (hasElementBeenCollocated) { return; }
   closeDropdown({ dropdown, arrow, scrollableContentClassName }, extra, false);
+};
+
+const initBackgroundMask = (id, zIndex) => {
+  const element = document.createElement('div');
+  element.id = id;
+  element.style.display = 'none';
+  element.style.position = 'absolute';
+  element.style.top = 0;
+  element.style.left = 0;
+  element.style.bottom = 0;
+  element.style.right = 0;
+  element.style.zIndex = zIndex;
+  element.style.opacity = 0.5;
+  element.style.backgroundColor = '#000';
+  return {
+    element,
+  };
 };
 
 const initArrow = (id, arrowColor, zIndex) => {
@@ -220,7 +248,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     allowBottomCollocation,
     allowLeftCollocation,
     allowRightCollocation,
-    hasTouchSupport,
   } = value;
   if (!id) { return; }
   const dropdown = document.querySelector(`[dropdown-id="${id}"]`);
@@ -229,6 +256,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
   const dropdownElementsSet = {
     dropdown,
     arrow: arrow ? initArrow(id, arrowColor, zIndex) : {},
+    backgroundMask: hasTouchSupport ? initBackgroundMask(id, zIndex) : {},
     scrollableContentClassName,
   };
   const debounceDelayInMilliseconds = 500;
@@ -252,7 +280,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
       debouncedTemporaryHideAllDropdowns,
       keepDropdownsOpenOnUIEvent,
     ),
-    hasTouchSupport,
   };
   trigger.click = (event) => onTriggerClick(event, trigger, dropdownElementsSet, extra);
   dropdown.open = () => openDropdown(dropdownElementsSet, extra, trigger);

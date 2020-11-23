@@ -113,7 +113,6 @@ The second modifier refers to the alignment of the dropdown with the trigger ele
 - ``allowBottomCollocation`` is a *boolean* used to enable/disable the bottom position, the default is set to ``true``.
 - ``allowLeftCollocation`` is a *boolean* used to enable/disable the left position, the default is set to ``true``.
 - ``allowRightCollocation`` is a *boolean* used to enable/disable the right position, the default is set to ``true``.
-- ``hasTouchSupport`` is a *boolean* used to block the action that hides the dropdown when a resize event has been triggered, the default is set to ``false``.
 
 ## Behaviour
 
