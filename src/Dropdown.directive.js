@@ -64,7 +64,13 @@ const temporaryHideAllDropdowns = (
   otherScrollableContentClassNames,
   openTemporaryClosedDropdownsDebounced,
   keepDropdownsOpenOnUIEvent,
+  dropdownId,
 ) => {
+  const eventParentIds = event?.path?.map(({ id }) => id) || [];
+  const isEventFromInsideDropdown = eventParentIds.includes(dropdownId);
+  const isScrollEvent = event.type === 'scroll';
+  const shouldIgnoreEvent = isEventFromInsideDropdown && isScrollEvent;
+  if (shouldIgnoreEvent) { return; } // prevents scroll events from inside dropdown hiding dropdowns https://github.com/Teamwork/deskclient/pull/3600#issue-613566610
   if (event?.target?.className === scrollableContentClassName || otherScrollableContentClassNames?.includes?.(event?.target?.className)) { return; }
   temporaryCloseDropdowns(keepDropdownsOpenOnUIEvent);
   if (!keepDropdownsOpenOnUIEvent) { return; }
@@ -279,6 +285,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
       otherScrollableContentClassNames,
       debouncedTemporaryHideAllDropdowns,
       keepDropdownsOpenOnUIEvent,
+      id,
     ),
   };
   trigger.click = (event) => onTriggerClick(event, trigger, dropdownElementsSet, extra);
