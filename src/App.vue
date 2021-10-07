@@ -69,12 +69,12 @@
       <div
         ref="customDropdown"
         dropdown-id="text-trigger-dropdown"
-        class="dropdown"
+        class="dropdown dropdown-with-max-height"
       >
         <input type="text">
         <div class="dropdown-list">
           <div
-            v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3']"
+            v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', ]"
             class="dropdown-list__item"
             :key="index"
             @click="() => $refs.customDropdown.close()"
@@ -128,6 +128,11 @@ button {
   background-color: #fff;
   box-shadow: 0 1px 4px 0 #f5f7fa, 0 2px 15px 0 #f5f7fa;
   border-radius: 4px;
+}
+
+.dropdown-with-max-height {
+  max-height: 300px;
+  overflow: auto;
 }
 
 .dropdown-list__item {
