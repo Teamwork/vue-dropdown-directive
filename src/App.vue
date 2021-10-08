@@ -84,6 +84,35 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div
+        v-dropdown-directive.bottom.center="{
+          id: 'text-trigger-dropdown-1',
+          arrow: true,
+          scrollableContentClassName: 'dropdown-list',
+          isReady: true,
+        }"
+      >
+        Trigger
+      </div>
+      <div
+        ref="customDropdown"
+        dropdown-id="text-trigger-dropdown-1"
+        class="dropdown dropdown-with-max-height"
+      >
+        <input type="text">
+        <div class="dropdown-list">
+          <div
+            v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', ]"
+            class="dropdown-list__item"
+            :key="index"
+            @click="() => $refs.customDropdown.close()"
+          >
+            {{ item }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

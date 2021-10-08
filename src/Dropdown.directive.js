@@ -91,7 +91,7 @@ const closeDropdownsOnEscKey = (event) => {
 };
 
 const closeOtherDropdowns = (currentDropdown) => {
-  const keepListenersAttachedParamToPass = true;
+  const keepListenersAttachedParamToPass = false;
   const dropdowns = Array.from(document.querySelectorAll('[dropdown-id]'));
   const filterByCurrentDropdown = (dropdown) => dropdown !== currentDropdown;
   const closeDropdown = (dropdown) => dropdown.close?.(keepListenersAttachedParamToPass);
