@@ -113,6 +113,36 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div style="text-align:center">
+        long list and soft keyboard (test on IOS) <br>
+        <input
+          type="text"
+          v-dropdown-directive.bottom.center="{
+            id: 'text-input-dropdown-long-list',
+            arrow: false,
+            scrollableContentClassName: 'dropdown-list',
+            isReady: true,
+          }"
+        >
+        <div
+          ref="customDropdown"
+          dropdown-id="text-input-dropdown-long-list"
+          class="dropdown"
+        >
+          <div class="dropdown-list">
+            <div
+              v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7', 'Item 8', 'Item 9', 'Item 10', 'Item 11', 'Item 12']"
+              class="dropdown-list__item"
+              :key="index"
+              @click="() => $refs.customDropdown.close()"
+            >
+              {{ item }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -175,5 +205,10 @@ button {
 
 .dropdown-list__item:hover {
   background-color: #f5f7fa;
+}
+
+input[type='text'],
+textarea {
+  font-size: 16px; /* prevents zoom windows on focus ios */
 }
 </style>

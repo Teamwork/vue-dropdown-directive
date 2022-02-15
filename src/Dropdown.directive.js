@@ -128,7 +128,10 @@ const detachListeners = (temporaryHideAllDropdownsRef) => {
 };
 
 const openDropdown = ({
-  dropdown, arrow, backgroundMask, scrollableContentClassName, preventPageScrollingClassName,
+  dropdown,
+  arrow,
+  backgroundMask,
+  scrollableContentClassName,
 }, {
   offset,
   collocation,
@@ -136,6 +139,7 @@ const openDropdown = ({
   onOpen,
   keepOthersOpen,
   temporaryHideAllDropdownsRef,
+  preventPageScrolling,
 }, trigger) => {
   if (!keepOthersOpen) { dropdown.closeOthers?.(); }
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
@@ -151,11 +155,7 @@ const openDropdown = ({
     document.body.appendChild(arrow.element);
     arrow.element.style.display = 'block';
   }
-  console.log('preventPageScrollingClassName', preventPageScrollingClassName);
-  if (preventPageScrollingClassName && hasTouchSupport) {
-    disableScrolling(document.querySelector(`.${preventPageScrollingClassName}`));
-    disableScrolling(document.querySelector(`body`));
-  }
+  if (preventPageScrolling && hasTouchSupport) disableScrolling(document.body);
   const isCollocated = collocateElementAt({
     trigger,
     element: dropdown,
@@ -170,17 +170,18 @@ const openDropdown = ({
   onOpen?.();
 };
 
-const closeDropdown = (
-  {dropdown, arrow, backgroundMask, preventPageScrollingClassName,},
-  { onClose, temporaryHideAllDropdownsRef },
-  keepListenersAttached
-) => {
+const closeDropdown = ({
+  dropdown,
+  arrow,
+  backgroundMask,
+}, {
+  onClose,
+  temporaryHideAllDropdownsRef,
+  preventPageScrolling,
+}, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
-  if (preventPageScrollingClassName && hasTouchSupport) {
-    restoreScrolling(document.querySelector(`.${preventPageScrollingClassName}`));
-    restoreScrolling(document.querySelector(`body`));
-  }
+  if (preventPageScrolling && hasTouchSupport) restoreScrolling(document.body);
   if (backgroundMask.element) {
     backgroundMask.element.parentNode.removeChild(backgroundMask.element);
     backgroundMask.element.style.display = 'none';
@@ -264,7 +265,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     modifiers,
     scrollableContentClassName,
     otherScrollableContentClassNames = [],
-    preventPageScrollingClassName,
+    preventPageScrolling,
     arrow,
     arrowColor = '#fff',
     zIndex = 9999,
@@ -288,7 +289,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     arrow: arrow ? initArrow(id, arrowColor, zIndex) : {},
     backgroundMask: hasTouchSupport ? initBackgroundMask(id, zIndex) : {},
     scrollableContentClassName,
-    preventPageScrollingClassName,
   };
   const debounceDelayInMilliseconds = 500;
   const debouncedTemporaryHideAllDropdowns = debounce(openTemporaryClosedDropdowns, debounceDelayInMilliseconds);
@@ -312,6 +312,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
       keepDropdownsOpenOnUIEvent,
       id,
     ),
+    preventPageScrolling,
   };
   trigger.click = (event) => onTriggerClick(event, trigger, dropdownElementsSet, extra);
   dropdown.open = () => openDropdown(dropdownElementsSet, extra, trigger);

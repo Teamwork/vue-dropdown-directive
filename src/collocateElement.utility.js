@@ -24,6 +24,8 @@ const deviceMaxViewport = {
   height: window.visualViewport?.height || window.innerHeight,
 };
 
+const isPortrait = (deviceSice) => (deviceSice.height >= deviceSice.width);
+
 const updateDeviceViewport = () => {
   console.log('updateDeviceViewport');
   const newDeviceViewport = {
@@ -38,9 +40,7 @@ const updateDeviceViewport = () => {
     deviceMaxViewport.width = Math.max(deviceMaxViewport.width, newDeviceViewport.width);
     deviceMaxViewport.height = Math.max(deviceMaxViewport.height, newDeviceViewport.height);
   }
-}
-
-const isPortrait = (deviceSice) => (deviceSice.height >= deviceSice.width);
+};
 
 const addScrollXOffset = (data) => (data + window.pageXOffset);
 
@@ -330,7 +330,6 @@ const mapCoordinatesToCenterPosition = ({
   console.log('contentHeight', elementCoordinates.contentHeight);
   console.log('bottom', elementCoordinates.bottom);
   if (hiddenVieportHeight > 1) {
-    //elementCoordinates.contentHeight -= hiddenVieportHeight;
     elementCoordinates.bottom += hiddenVieportHeight;
     console.log('contentHeight modified', elementCoordinates.contentHeight);
     console.log('bottom modified', elementCoordinates.bottom);
@@ -464,6 +463,12 @@ const resetElementContentHeight = (element) => {
   element.style.height = 'auto';
 };
 
+const resetAndHideElement = (element) => {
+  if (!element || !element.style) { return; }
+  resetElementPosition(element);
+  element.style.opacity = '0';
+};
+
 const applyTouchScreensCoordinates = (element, elementContent, coordinates, shouldReset) => {
   if (!element || !element.style) { return; }
   if (shouldReset) resetAndHideElement(element);
@@ -478,12 +483,6 @@ const applyTouchScreensCoordinates = (element, elementContent, coordinates, shou
     element.style.opacity = '';
     applyOverflowToElementContent(elementContent, coordinates.contentHeight);
   }, 500);
-};
-
-const resetAndHideElement = (element) => {
-  if (!element || !element.style) { return; }
-  resetElementPosition(element);
-  element.style.opacity = '0';
 };
 
 const applyTresholdToCoordinates = (coordinates, viewport) => {
