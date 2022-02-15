@@ -7,6 +7,16 @@ import {
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 
+const disableScrolling = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.overflow = 'hidden';
+};
+
+const restoreScrolling = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.overflow = '';
+};
+
 const moveElementFromOriginalPlaceToBodyRoot = (element) => {
   const hasElementMoved = element.getAttribute('has-element-moved') === 'true';
   if (!element || !element.id || hasElementMoved) { return; }
@@ -118,7 +128,7 @@ const detachListeners = (temporaryHideAllDropdownsRef) => {
 };
 
 const openDropdown = ({
-  dropdown, arrow, backgroundMask, scrollableContentClassName,
+  dropdown, arrow, backgroundMask, scrollableContentClassName, preventPageScrollingClassName,
 }, {
   offset,
   collocation,
@@ -141,6 +151,11 @@ const openDropdown = ({
     document.body.appendChild(arrow.element);
     arrow.element.style.display = 'block';
   }
+  console.log('preventPageScrollingClassName', preventPageScrollingClassName);
+  if (preventPageScrollingClassName && hasTouchSupport) {
+    disableScrolling(document.querySelector(`.${preventPageScrollingClassName}`));
+    disableScrolling(document.querySelector(`body`));
+  }
   const isCollocated = collocateElementAt({
     trigger,
     element: dropdown,
@@ -155,9 +170,17 @@ const openDropdown = ({
   onOpen?.();
 };
 
-const closeDropdown = ({ dropdown, arrow, backgroundMask }, { onClose, temporaryHideAllDropdownsRef }, keepListenersAttached) => {
+const closeDropdown = (
+  {dropdown, arrow, backgroundMask, preventPageScrollingClassName,},
+  { onClose, temporaryHideAllDropdownsRef },
+  keepListenersAttached
+) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
+  if (preventPageScrollingClassName && hasTouchSupport) {
+    restoreScrolling(document.querySelector(`.${preventPageScrollingClassName}`));
+    restoreScrolling(document.querySelector(`body`));
+  }
   if (backgroundMask.element) {
     backgroundMask.element.parentNode.removeChild(backgroundMask.element);
     backgroundMask.element.style.display = 'none';
@@ -241,6 +264,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     modifiers,
     scrollableContentClassName,
     otherScrollableContentClassNames = [],
+    preventPageScrollingClassName,
     arrow,
     arrowColor = '#fff',
     zIndex = 9999,
@@ -264,6 +288,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     arrow: arrow ? initArrow(id, arrowColor, zIndex) : {},
     backgroundMask: hasTouchSupport ? initBackgroundMask(id, zIndex) : {},
     scrollableContentClassName,
+    preventPageScrollingClassName,
   };
   const debounceDelayInMilliseconds = 500;
   const debouncedTemporaryHideAllDropdowns = debounce(openTemporaryClosedDropdowns, debounceDelayInMilliseconds);
