@@ -19,6 +19,10 @@ const maxThresholdInPercentage = 5;
 
 const minContentHeightInPixels = 150;
 
+const onVieportChangeListenerMaxMs = 2500;
+
+const onVieportChangeListenerIntervalMs = 250;
+
 const deviceMaxViewport = {
   width: window.visualViewport?.width || window.innerWidth,
   height: window.visualViewport?.height || window.innerHeight,
@@ -41,6 +45,11 @@ const updateDeviceViewport = () => {
     deviceMaxViewport.height = Math.max(deviceMaxViewport.height, newDeviceViewport.height);
   }
 };
+
+const getViePort = () => ({
+  height: window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
+  width: window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth,
+});
 
 const addScrollXOffset = (data) => (data + window.pageXOffset);
 
@@ -469,20 +478,16 @@ const resetAndHideElement = (element) => {
   element.style.opacity = '0';
 };
 
-const applyTouchScreensCoordinates = (element, elementContent, coordinates, shouldReset) => {
+const applyTouchScreensCoordinates = (element, elementContent, coordinates) => {
   if (!element || !element.style) { return; }
-  if (shouldReset) resetAndHideElement(element);
-  // small delay required for IOS to apply the absolute positioning properly
-  setTimeout(() => {
-    element.style.top = `${coordinates.top}px`;
-    element.style.left = `${coordinates.left}px`;
-    element.style.right = `${coordinates.right}px`;
-    element.style.bottom = `${coordinates.bottom}px`;
-    element.style.width = 'auto';
-    element.style.maxWidth = '';
-    element.style.opacity = '';
-    applyOverflowToElementContent(elementContent, coordinates.contentHeight);
-  }, 500);
+  element.style.top = `${coordinates.top}px`;
+  element.style.left = `${coordinates.left}px`;
+  element.style.right = `${coordinates.right}px`;
+  element.style.bottom = `${coordinates.bottom}px`;
+  element.style.width = 'auto';
+  element.style.maxWidth = '';
+  element.style.opacity = '';
+  applyOverflowToElementContent(elementContent, coordinates.contentHeight);
 };
 
 const applyTresholdToCoordinates = (coordinates, viewport) => {
@@ -579,6 +584,47 @@ const getRequestedCollocation = (modifiers = {}, defaultPosition = 'bottom', def
   }
 };
 
+const touchCollocateElemeAt = (element, elementContent, trigger, arrow, viewport, delayRenderTimeout = 500) => {
+  resetAndHideElement(element);
+  resetElementContentHeight(elementContent);
+  const elementRect = element.getBoundingClientRect();
+  const triggerRect = trigger.getBoundingClientRect();
+  const rect = {
+    elementRect,
+    triggerRect,
+    arrowRect: arrow,
+    contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
+  };
+  // IOS requires some time between reseting the dropdown and assigning new coordinates
+  setTimeout(() => {
+    console.log('collocate');
+    const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, viewport);
+    console.log('vieport', viewport);
+    applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
+  }, delayRenderTimeout);
+};
+
+const touchDetectVieportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
+  const resizeOnVieportChange = (previousViewport, elapsedTime = 0) => {
+    console.log('elepsedTime', elapsedTime);
+    if (elapsedTime >= onVieportChangeListenerMaxMs) return;
+    const viewport = getViePort();
+    const hasChanged = previousViewport.height !== viewport.height;
+    console.log('resiceOnVieportChange hasChanged', hasChanged, viewport);
+    if (hasChanged) {
+      previousViewport = viewport;
+      touchCollocateElemeAt(element, elementContent, trigger, arrow, viewport, 0);
+    }
+    setTimeout(() => {
+      resizeOnVieportChange(previousViewport, elapsedTime + onVieportChangeListenerIntervalMs);
+    }, onVieportChangeListenerIntervalMs);
+  };
+
+  const initialViewPort = getViePort();
+  touchCollocateElemeAt(element, elementContent, trigger, arrow, initialViewPort);
+  resizeOnVieportChange(initialViewPort);
+};
+
 const collocateElementAt = ({
   element,
   trigger,
@@ -586,25 +632,20 @@ const collocateElementAt = ({
   elementContent,
 } = {}, offset = 0, askedCollocation, availableCollocations, hasTouchSupport) => {
   if (!element || !trigger) { return false; }
+  if (hasTouchSupport) {
+    touchDetectVieportChangesAndCollocate(element, elementContent, trigger, arrow);
+    return true;
+  }
   resetElementContentHeight(elementContent);
   const elementRect = element.getBoundingClientRect();
   const triggerRect = trigger.getBoundingClientRect();
-  const viewport = {
-    height: window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
-    width: window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth,
-  };
   const rect = {
     elementRect,
     triggerRect,
     arrowRect: arrow,
     contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
   };
-  if (hasTouchSupport) {
-    const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, viewport);
-    console.log('vieport', viewport);
-    applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates }, true);
-    return true;
-  }
+  const viewport = getViePort();
   const collocationWithCoordinates = getCollocationWithCoordinates(rect, offset, askedCollocation, availableCollocations, viewport);
   if (!collocationWithCoordinates) { return false; }
   applyCoordinates(element, arrow, elementContent, collocationWithCoordinates.coordinates, viewport);
