@@ -154,24 +154,9 @@ const getViePort = () => ({
 
 const applyTouchCoordinatesCorrection = (elementCoordinates) => {
   if (!window.visualViewport) return;
-  console.log('window.innerHeight', window.innerHeight);
-  console.log('visualViewport.height', visualViewport?.height);
-  console.log('visualViewport.offsetTop', visualViewport.offsetTop);
-  console.log('hiddenHeight', window.innerHeight - visualViewport.height);
-  console.log('scrollY', window.scrollY);
-
   elementCoordinates.top += window.scrollY;
   const totalHeight = document.body.offsetHeight;
   elementCoordinates.bottom = totalHeight - window.scrollY - visualViewport.height + maxThresholdInPixels;
-
-  console.log('bootom', elementCoordinates.bottom);
-  console.log('timestamp', Date.now());
-  console.log('--------------------------------------------');
-
-  // const hiddenHeight = window.innerHeight - visualViewport.height;
-  // if (hiddenHeight > 1) {
-  //   elementCoordinates.bottom += hiddenHeight;
-  // }
 };
 
 const mapCoordinatesToTopPosition = ({
