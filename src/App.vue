@@ -116,8 +116,18 @@
     <div class="row">
       <div style="text-align:center">
         long list and soft keyboard (test on IOS and software keyboard) <br>
-        <button v-if="isLargePage === false" @click="isLargePage = true">Large Page</button>
-        <button v-if="isLargePage === true" @click="isLargePage = false">Small Page</button>
+        <button
+          v-if="isLargePage === false"
+          @click="isLargePage = true"
+        >
+          Large Page
+        </button>
+        <button
+          v-if="isLargePage === true"
+          @click="isLargePage = false"
+        >
+          Small Page
+        </button>
         <br>
         <input
           type="text"
@@ -148,7 +158,7 @@
       </div>
     </div>
     <div class="row">
-      <div v-bind:class="{ large_page: isLargePage }">
+      <div :class="{ large_page: isLargePage }">
         &nbsp;
       </div>
     </div>
