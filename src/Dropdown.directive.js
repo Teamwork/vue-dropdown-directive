@@ -7,16 +7,6 @@ import {
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 
-const disableScrolling = (element) => {
-  if (!element || !element.style) { return; }
-  element.style.overflow = 'hidden';
-};
-
-const restoreScrolling = (element) => {
-  if (!element || !element.style) { return; }
-  element.style.overflow = '';
-};
-
 const moveElementFromOriginalPlaceToBodyRoot = (element) => {
   const hasElementMoved = element.getAttribute('has-element-moved') === 'true';
   if (!element || !element.id || hasElementMoved) { return; }
@@ -139,7 +129,6 @@ const openDropdown = ({
   onOpen,
   keepOthersOpen,
   temporaryHideAllDropdownsRef,
-  preventPageScrolling,
 }, trigger) => {
   if (!keepOthersOpen) { dropdown.closeOthers?.(); }
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
@@ -155,13 +144,12 @@ const openDropdown = ({
     document.body.appendChild(arrow.element);
     arrow.element.style.display = 'block';
   }
-  if (preventPageScrolling && hasTouchSupport) disableScrolling(document.body);
   const isCollocated = collocateElementAt({
     trigger,
     element: dropdown,
     elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
     arrow,
-  }, offset, collocation, availableCollocations, hasTouchSupport);
+  }, offset, collocation, availableCollocations);
   if (!isCollocated) {
     trigger.click?.();
     return;
@@ -177,11 +165,13 @@ const closeDropdown = ({
 }, {
   onClose,
   temporaryHideAllDropdownsRef,
-  preventPageScrolling,
 }, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
-  if (preventPageScrolling && hasTouchSupport) restoreScrolling(document.body);
+  if (dropdown.onVieportChangeInterval) {
+    clearInterval(dropdown.onVieportChangeInterval);
+    dropdown.onVieportChangeInterval = null;
+  }
   if (backgroundMask.element) {
     backgroundMask.element.parentNode.removeChild(backgroundMask.element);
     backgroundMask.element.style.display = 'none';
@@ -265,7 +255,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     modifiers,
     scrollableContentClassName,
     otherScrollableContentClassNames = [],
-    preventPageScrolling,
     arrow,
     arrowColor = '#fff',
     zIndex = 9999,
@@ -312,7 +301,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
       keepDropdownsOpenOnUIEvent,
       id,
     ),
-    preventPageScrolling,
   };
   trigger.click = (event) => onTriggerClick(event, trigger, dropdownElementsSet, extra);
   dropdown.open = () => openDropdown(dropdownElementsSet, extra, trigger);
