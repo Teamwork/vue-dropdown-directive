@@ -156,7 +156,7 @@ const applyTouchCoordinatesCorrection = (elementCoordinates) => {
   if (!window.visualViewport) return;
   elementCoordinates.top += window.scrollY;
   const totalHeight = document.body.offsetHeight;
-  elementCoordinates.bottom = totalHeight - window.scrollY - visualViewport.height + maxThresholdInPixels;
+  elementCoordinates.bottom = totalHeight - window.scrollY - window.visualViewport.height + maxThresholdInPixels;
 };
 
 const mapCoordinatesToTopPosition = ({
@@ -581,8 +581,8 @@ const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
 const touchDetectVieportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
   const getState = () => ({
     winHeight: window.innerHeight,
-    visualHeight: visualViewport?.height || 0,
-    visualOffsetTop: visualViewport?.offsetTop || 0,
+    visualHeight: window.visualViewport?.height || 0,
+    visualOffsetTop: window.visualViewport?.offsetTop || 0,
   });
   const isSameEstate = (e1, e2) => (
     e1.winHeight === e2.winHeight
@@ -599,9 +599,7 @@ const touchDetectVieportChangesAndCollocate = (element, elementContent, trigger,
     }
   };
 
-  // first render should be triggered before firs interval
-  const firstrenderDelay = onVieportChangeIntervalMs - 1;
-  touchCollocateElemeAt(element, elementContent, trigger, arrow, firstrenderDelay);
+  touchCollocateElemeAt(element, elementContent, trigger, arrow);
   element.onVieportChangeInterval = setInterval(resizeOnVieportChange, onVieportChangeIntervalMs);
 };
 
