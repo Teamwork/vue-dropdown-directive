@@ -575,7 +575,7 @@ const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
   applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
 };
 
-/* New version of IOS does not trigger any event when the viewport changes due to soft keyboar
+/* New version of IOS does not trigger any event when the viewport changes due to soft keyboard
  * so we need to use an interval to detect changes.
  * onViewportChangeInterval should be dismissed when the dorpdown is closed */
 const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
