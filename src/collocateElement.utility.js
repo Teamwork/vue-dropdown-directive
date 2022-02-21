@@ -19,7 +19,7 @@ const maxThresholdInPercentage = 5;
 
 const minContentHeightInPixels = 150;
 
-const onVieportChangeIntervalMs = 500;
+const onViewportChangeIntervalInMs = 500;
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 
@@ -147,7 +147,7 @@ const getElementTopCoordinateAtLeftAndRightPosition = (alignment, triggerRect, e
   }
 };
 
-const getViePort = () => ({
+const getViewPort = () => ({
   height: window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
   width: window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth,
 });
@@ -571,36 +571,36 @@ const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
     arrowRect: arrow,
     contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
   };
-  const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, getViePort());
+  const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, getViewPort());
   applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
 };
 
-/* New version of IOS does not trigger any event when the vieport changes due to soft keyboar
+/* New version of IOS does not trigger any event when the viewport changes due to soft keyboar
  * so we need to use an interval to detect changes.
- * onVieportChangeInterval should be dismissed when the dorpdown is closed */
-const touchDetectVieportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
-  const getState = () => ({
+ * onViewportChangeInterval should be dismissed when the dorpdown is closed */
+const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
+  const getWindowDimensions = () => ({
     winHeight: window.innerHeight,
     visualHeight: window.visualViewport?.height || 0,
     visualOffsetTop: window.visualViewport?.offsetTop || 0,
   });
-  const isSameEstate = (e1, e2) => (
-    e1.winHeight === e2.winHeight
-    && e1.visualHeight === e2.visualHeight
-    && e1.visualOffsetTop === e2.visualOffsetTop
+  const areDimesionsEqual = (w1, w2) => (
+    w1.winHeight === w2.winHeight
+    && w1.visualHeight === w2.visualHeight
+    && w1.visualOffsetTop === w2.visualOffsetTop
   );
 
-  let previousState = getState();
-  const resizeOnVieportChange = () => {
-    const state = getState();
-    if (!isSameEstate(previousState, state)) {
-      previousState = state;
+  let previousWindowsDimensions = getWindowDimensions();
+  const resizeOnViewportChange = () => {
+    const currentWindowsDimensions = getWindowDimensions();
+    if (!areDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions)) {
+      previousWindowsDimensions = currentWindowsDimensions;
       touchCollocateElemeAt(element, elementContent, trigger, arrow, 0);
     }
   };
 
   touchCollocateElemeAt(element, elementContent, trigger, arrow);
-  element.onVieportChangeInterval = setInterval(resizeOnVieportChange, onVieportChangeIntervalMs);
+  element.onViewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
 };
 
 const collocateElementAt = ({
@@ -611,7 +611,7 @@ const collocateElementAt = ({
 } = {}, offset = 0, askedCollocation, availableCollocations) => {
   if (!element || !trigger) { return false; }
   if (hasTouchSupport) {
-    touchDetectVieportChangesAndCollocate(element, elementContent, trigger, arrow);
+    touchDetectViewportChangesAndCollocate(element, elementContent, trigger, arrow);
     return true;
   }
   resetElementContentHeight(elementContent);
@@ -623,7 +623,7 @@ const collocateElementAt = ({
     arrowRect: arrow,
     contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
   };
-  const viewport = getViePort();
+  const viewport = getViewPort();
   const collocationWithCoordinates = getCollocationWithCoordinates(rect, offset, askedCollocation, availableCollocations, viewport);
   if (!collocationWithCoordinates) { return false; }
   applyCoordinates(element, arrow, elementContent, collocationWithCoordinates.coordinates, viewport);
