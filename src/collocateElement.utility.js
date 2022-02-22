@@ -577,7 +577,7 @@ const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
 
 /* New version of IOS does not trigger any event when the viewport changes due to soft keyboard
  * so we need to use an interval to detect changes.
- * onViewportChangeInterval should be dismissed when the dorpdown is closed */
+ * onViewportChangeInterval should be dismissed when the dropdown is closed */
 const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
   const getWindowDimensions = () => ({
     winHeight: window.innerHeight,
