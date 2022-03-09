@@ -168,10 +168,6 @@ const closeDropdown = ({
 }, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
-  if (dropdown.onVieportChangeInterval) {
-    clearInterval(dropdown.onVieportChangeInterval);
-    dropdown.onVieportChangeInterval = null;
-  }
   if (backgroundMask.element) {
     backgroundMask.element.parentNode.removeChild(backgroundMask.element);
     backgroundMask.element.style.display = 'none';

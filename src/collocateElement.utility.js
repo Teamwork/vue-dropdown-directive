@@ -154,9 +154,9 @@ const getViewPort = () => ({
 
 const applyTouchCoordinatesCorrection = (elementCoordinates) => {
   if (!window.visualViewport) return;
-  elementCoordinates.top += window.scrollY;
-  const totalHeight = document.body.offsetHeight;
-  elementCoordinates.bottom = totalHeight - window.scrollY - window.visualViewport.height + maxThresholdInPixels;
+  elementCoordinates.top = window.scrollY + maxThresholdInPixels;
+  elementCoordinates.bottom = document.body.offsetHeight - window.scrollY - window.visualViewport.height + maxThresholdInPixels;
+  if (elementCoordinates.bottom <= maxThresholdInPixels) elementCoordinates.bottom = maxThresholdInPixels;
 };
 
 const mapCoordinatesToTopPosition = ({
@@ -563,22 +563,27 @@ const getRequestedCollocation = (modifiers = {}, defaultPosition = 'bottom', def
 const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
   resetAndHideElement(element);
   resetElementContentHeight(elementContent);
-  const elementRect = element.getBoundingClientRect();
-  const triggerRect = trigger.getBoundingClientRect();
-  const rect = {
-    elementRect,
-    triggerRect,
-    arrowRect: arrow,
-    contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
-  };
-  const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, getViewPort());
-  applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
+  // required for ios to apply the reset correctly
+  setTimeout(() => {
+    const elementRect = element.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    const rect = {
+      elementRect,
+      triggerRect,
+      arrowRect: arrow,
+      contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
+    };
+    const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, getViewPort());
+    applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
+  }, 0);
 };
 
 /* New version of IOS does not trigger any event when the viewport changes due to soft keyboard
  * so we need to use an interval to detect changes.
  * onViewportChangeInterval should be dismissed when the dropdown is closed */
 const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
+  let viewportChangeInterval;
+  let viewportChangeIntervalID;
   const getWindowDimensions = () => ({
     winHeight: window.innerHeight,
     visualHeight: window.visualViewport?.height || 0,
@@ -589,9 +594,21 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger
     && w1.visualHeight === w2.visualHeight
     && w1.visualOffsetTop === w2.visualOffsetTop
   );
+  const isDropdownOpen = () => element?.getAttribute('open') === 'true';
 
   let previousWindowsDimensions = getWindowDimensions();
   const resizeOnViewportChange = () => {
+    if (!isDropdownOpen()) {
+      clearInterval(viewportChangeInterval);
+      element.viewportChangeIntervalID = null;
+      return;
+    }
+    // removes old intervals
+    if (element.viewportChangeIntervalID && viewportChangeIntervalID !== element.viewportChangeIntervalID) {
+      clearInterval(viewportChangeInterval);
+      return;
+    }
+
     const currentWindowsDimensions = getWindowDimensions();
     if (!areDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions)) {
       previousWindowsDimensions = currentWindowsDimensions;
@@ -600,7 +617,10 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger
   };
 
   touchCollocateElemeAt(element, elementContent, trigger, arrow);
-  element.onViewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
+  // interval reference stored in dom element can't be used to clear the interval
+  viewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
+  viewportChangeIntervalID = `${viewportChangeInterval}`;
+  element.viewportChangeIntervalID = viewportChangeIntervalID;
 };
 
 const collocateElementAt = ({
