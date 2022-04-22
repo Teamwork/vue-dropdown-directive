@@ -15,11 +15,15 @@ const allAvailableCollocations = [
 
 const maxThresholdInPixels = 20;
 
+const touchDeviceThresholdInPixels = 10;
+
 const maxThresholdInPercentage = 5;
 
 const minContentHeightInPixels = 150;
 
-const onViewportChangeIntervalInMs = 500;
+const onViewportChangeIntervalInMs = 250;
+
+const maxTouchElementWidthInPixels = 600;
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 
@@ -63,11 +67,46 @@ const checkCollocationPositionAndAlignment = (current, next) => current.position
 
 const checkCollocationPosition = (current, next) => current.position === next.position;
 
+// TODO: replace getElementContentExtraHeight by getContentExtraHeight and remove. (requires extensive testing for non touch devices)
 const getElementContentExtraHeight = (elementContent, elementHeight) => {
   if (!elementContent) { return; }
   const contentHeight = elementContent.getBoundingClientRect().height;
   if (contentHeight > 0) { return (elementHeight - contentHeight); }
   return 0;
+};
+
+const getContentExtraHeight = (element, elementContent) => {
+  const elementHeight = element.scrollHeight;
+  const contentHeight = elementContent?.getBoundingClientRect().height || 0;
+  return elementHeight - contentHeight;
+};
+
+const getComputedValueInPixels = (element, propertyName) => {
+  if (!element) { return; }
+  const stringValue = window.getComputedStyle(element).getPropertyValue(propertyName);
+  let value;
+  if (!stringValue || stringValue === 'none') return null;
+  switch (true) {
+    case stringValue.includes('px'):
+      value = parseInt(stringValue.replace('px', ''), 10);
+      return Number.isNaN(value) ? null : value;
+    // there is a browser bug where max-with value is returned in percentage rather than px
+    case stringValue.includes('%'):
+      return null;
+    default:
+      value = parseInt(stringValue, 10);
+      return Number.isNaN(value) ? null : value;
+  }
+};
+
+const getElementComputedMaxHeight = (element) => {
+  if (!element) { return; }
+  return getComputedValueInPixels(element, 'max-height') || Number.MAX_SAFE_INTEGER;
+};
+
+const getElementComputedMaxWidth = (element) => {
+  if (!element) { return; }
+  return getComputedValueInPixels(element, 'max-width') || Number.MAX_SAFE_INTEGER;
 };
 
 const getThresholdInPixels = (viewportDimension) => {
@@ -151,13 +190,6 @@ const getViewPort = () => ({
   height: window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight,
   width: window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth,
 });
-
-const applyTouchCoordinatesCorrection = (elementCoordinates) => {
-  if (!window.visualViewport) return;
-  elementCoordinates.top = window.scrollY + maxThresholdInPixels;
-  elementCoordinates.bottom = document.body.offsetHeight - window.scrollY - window.visualViewport.height + maxThresholdInPixels;
-  if (elementCoordinates.bottom <= maxThresholdInPixels) elementCoordinates.bottom = maxThresholdInPixels;
-};
 
 const mapCoordinatesToTopPosition = ({
   triggerRect,
@@ -299,6 +331,7 @@ const mapCoordinatesToRightPosition = ({
   };
 };
 
+/* eslint-disable no-unused-vars */
 const mapCoordinatesToCenterPosition = ({
   elementRect,
   triggerRect,
@@ -318,7 +351,6 @@ const mapCoordinatesToCenterPosition = ({
   elementCoordinates.top = verticalTreshold;
   elementCoordinates.bottom = verticalTreshold;
   elementCoordinates.contentHeight = viewport.height - contentExtraHeight - elementCoordinates.top - elementCoordinates.bottom;
-  if (hasTouchSupport) applyTouchCoordinatesCorrection(elementCoordinates);
   return elementCoordinates;
 };
 
@@ -433,37 +465,9 @@ const applyOverflowToElementContent = (element, height) => {
   element.style.overflowY = 'auto';
 };
 
-const resetElementPosition = (element) => {
-  if (!element || !element.style) { return; }
-  element.style.top = '';
-  element.style.left = '';
-  element.style.right = '';
-  element.style.bottom = '';
-  element.style.width = '';
-  element.style.maxWidth = '';
-};
-
 const resetElementContentHeight = (element) => {
   if (!element || !element.style) { return; }
   element.style.height = 'auto';
-};
-
-const resetAndHideElement = (element) => {
-  if (!element || !element.style) { return; }
-  resetElementPosition(element);
-  element.style.opacity = '0';
-};
-
-const applyTouchScreensCoordinates = (element, elementContent, coordinates) => {
-  if (!element || !element.style) { return; }
-  element.style.top = `${coordinates.top}px`;
-  element.style.left = `${coordinates.left}px`;
-  element.style.right = `${coordinates.right}px`;
-  element.style.bottom = `${coordinates.bottom}px`;
-  element.style.width = 'auto';
-  element.style.maxWidth = '';
-  element.style.opacity = '';
-  applyOverflowToElementContent(elementContent, coordinates.contentHeight);
 };
 
 const applyTresholdToCoordinates = (coordinates, viewport) => {
@@ -560,21 +564,54 @@ const getRequestedCollocation = (modifiers = {}, defaultPosition = 'bottom', def
   }
 };
 
-const touchCollocateElemeAt = (element, elementContent, trigger, arrow) => {
-  resetAndHideElement(element);
+const applyTouchElementContentHeight = (element, elementContent) => {
+  if (!element || !elementContent) return;
+  const elementRect = element.getBoundingClientRect();
+  const contentExtraHeight = getContentExtraHeight(element, elementContent);
+  const dropdownHeight = elementRect.height;
+  const contentHeight = dropdownHeight - contentExtraHeight;
+  applyOverflowToElementContent(elementContent, contentHeight);
+};
+
+const applyTouchElementCentering = (element) => {
+  if (!element) return;
+  const viewport = getViewPort();
+  const elementRect = element.getBoundingClientRect();
+
+  const top = window.scrollY + (viewport.height / 2);
+  const negativeMarginY = elementRect.height / 2;
+  element.style.top = `${top}px`;
+  element.style.marginTop = `-${negativeMarginY}px`;
+
+  const left = window.scrollX + (viewport.width / 2);
+  const maxAvailableViewportWidth = viewport.width - (touchDeviceThresholdInPixels * 2);
+  const negativeMarginX = elementRect.width / 2;
+  element.style.left = `${left}px`;
+  element.style.width = `${maxAvailableViewportWidth}px`;
+  element.style.marginLeft = `-${negativeMarginX}px`;
+};
+
+const applyInitialTouchElementStyle = (element) => {
+  const initialMaxDropdownHeight = getElementComputedMaxHeight(element);
+  const initialMaxDropdownWidth = getElementComputedMaxWidth(element);
+  const viewport = getViewPort();
+
+  const maxAvailableViewportHeight = viewport.height - (touchDeviceThresholdInPixels * 2);
+  const maxAvailableHeight = Math.min(maxAvailableViewportHeight, initialMaxDropdownHeight);
+  element.style.maxHeight = `${maxAvailableHeight}px`;
+
+  const maxAvailableViewportWidth = viewport.width - (touchDeviceThresholdInPixels * 2);
+  const maxAvailableWidth = Math.min(maxAvailableViewportWidth, initialMaxDropdownWidth, maxTouchElementWidthInPixels);
+  element.style.maxWidth = `${maxAvailableWidth}px`;
+
+  applyTouchElementCentering(element);
+};
+
+const touchCollocateElemeAt = (element, elementContent) => {
+  applyTouchElementCentering(element);
   resetElementContentHeight(elementContent);
-  // required for ios to apply the reset correctly
   setTimeout(() => {
-    const elementRect = element.getBoundingClientRect();
-    const triggerRect = trigger.getBoundingClientRect();
-    const rect = {
-      elementRect,
-      triggerRect,
-      arrowRect: arrow,
-      contentExtraHeight: getElementContentExtraHeight(elementContent, elementRect.height),
-    };
-    const touchScreensElementCoordinates = mapCoordinatesToCenterPosition(rect, getViewPort());
-    applyTouchScreensCoordinates(element, elementContent, { ...touchScreensElementCoordinates });
+    applyTouchElementContentHeight(element, elementContent);
   }, 0);
 };
 
@@ -615,9 +652,11 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger
       touchCollocateElemeAt(element, elementContent, trigger, arrow, 0);
     }
   };
-
+  applyInitialTouchElementStyle(element);
   touchCollocateElemeAt(element, elementContent, trigger, arrow);
-  // interval reference stored in dom element can't be used to clear the interval
+
+  /* Interval reference stored in dom element can't be used to clear the interval
+   * so instead we use viewportChangeInterval and viewportChangeIntervalID for id comparison */
   viewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
   viewportChangeIntervalID = `${viewportChangeInterval}`;
   element.viewportChangeIntervalID = viewportChangeIntervalID;
