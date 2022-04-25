@@ -470,6 +470,11 @@ const resetElementContentHeight = (element) => {
   element.style.height = 'auto';
 };
 
+const resetElementContentMaxHeight = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.maxHeight = '';
+};
+
 const applyTresholdToCoordinates = (coordinates, viewport) => {
   const newCoordinates = { ...coordinates };
   const verticalTreshold = getThresholdInPixels(viewport.height);
@@ -564,13 +569,14 @@ const getRequestedCollocation = (modifiers = {}, defaultPosition = 'bottom', def
   }
 };
 
-const applyTouchElementContentHeight = (element, elementContent) => {
+const applyTouchElementContentMaxHeight = (element, elementContent) => {
   if (!element || !elementContent) return;
   const elementRect = element.getBoundingClientRect();
   const contentExtraHeight = getContentExtraHeight(element, elementContent);
   const dropdownHeight = elementRect.height;
   const contentHeight = dropdownHeight - contentExtraHeight;
-  applyOverflowToElementContent(elementContent, contentHeight);
+  elementContent.style.maxHeight = `${contentHeight}px`;
+  elementContent.style.overflowY = 'auto';
 };
 
 const applyTouchElementCentering = (element) => {
@@ -609,9 +615,9 @@ const applyInitialTouchElementStyle = (element) => {
 
 const touchCollocateElemeAt = (element, elementContent) => {
   applyTouchElementCentering(element);
-  resetElementContentHeight(elementContent);
+  resetElementContentMaxHeight(elementContent);
   setTimeout(() => {
-    applyTouchElementContentHeight(element, elementContent);
+    applyTouchElementContentMaxHeight(element, elementContent);
   }, 0);
 };
 
