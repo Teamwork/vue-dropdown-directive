@@ -15,7 +15,7 @@ const allAvailableCollocations = [
 
 const maxThresholdInPixels = 20;
 
-const touchDeviceThresholdInPixels = 10;
+const maxTouchThresholdInPixels = 10;
 
 const maxThresholdInPercentage = 5;
 
@@ -590,23 +590,23 @@ const applyTouchElementCentering = (element) => {
   element.style.marginTop = `-${negativeMarginY}px`;
 
   const left = window.scrollX + (viewport.width / 2);
-  const maxAvailableViewportWidth = viewport.width - (touchDeviceThresholdInPixels * 2);
+  const maxAvailableViewportWidth = viewport.width - (maxTouchThresholdInPixels * 2);
   const negativeMarginX = elementRect.width / 2;
   element.style.left = `${left}px`;
   element.style.width = `${maxAvailableViewportWidth}px`;
   element.style.marginLeft = `-${negativeMarginX}px`;
 };
 
-const applyInitialTouchElementStyle = (element) => {
+const applyTouchElementStyle = (element) => {
   const initialMaxDropdownHeight = getElementComputedMaxHeight(element);
   const initialMaxDropdownWidth = getElementComputedMaxWidth(element);
   const viewport = getViewPort();
 
-  const maxAvailableViewportHeight = viewport.height - (touchDeviceThresholdInPixels * 2);
+  const maxAvailableViewportHeight = viewport.height - (maxTouchThresholdInPixels * 2);
   const maxAvailableHeight = Math.min(maxAvailableViewportHeight, initialMaxDropdownHeight);
   element.style.maxHeight = `${maxAvailableHeight}px`;
 
-  const maxAvailableViewportWidth = viewport.width - (touchDeviceThresholdInPixels * 2);
+  const maxAvailableViewportWidth = viewport.width - (maxTouchThresholdInPixels * 2);
   const maxAvailableWidth = Math.min(maxAvailableViewportWidth, initialMaxDropdownWidth, maxTouchElementWidthInPixels);
   element.style.maxWidth = `${maxAvailableWidth}px`;
 
@@ -614,7 +614,7 @@ const applyInitialTouchElementStyle = (element) => {
 };
 
 const touchCollocateElemeAt = (element, elementContent) => {
-  applyTouchElementCentering(element);
+  applyTouchElementStyle(element);
   resetElementContentMaxHeight(elementContent);
   setTimeout(() => {
     applyTouchElementContentMaxHeight(element, elementContent);
@@ -658,7 +658,7 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger
       touchCollocateElemeAt(element, elementContent, trigger, arrow, 0);
     }
   };
-  applyInitialTouchElementStyle(element);
+  applyTouchElementStyle(element);
   touchCollocateElemeAt(element, elementContent, trigger, arrow);
 
   /* Interval reference stored in dom element can't be used to clear the interval
