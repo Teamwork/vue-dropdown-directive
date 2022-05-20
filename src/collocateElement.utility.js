@@ -632,26 +632,6 @@ const isTouchDropdownFullHeight = (element, rect) => {
 
 const shouldDisplayCloseButton = (element, touchCloseButton) => !isTouchCloseButtonDisplayed(touchCloseButton) && isTouchDropdownFullHeight(element);
 
-const isTouchElementOutOfLimits = (element, shouldLog) => {
-  if (!element) { return false; }
-  const viewport = getViewPort();
-  const elementRect = element.getBoundingClientRect();
-  const topLimit = window.scrollY;
-  const bottomLimit = window.scrollY + viewport.height;
-  const isOutLimitsTop = elementRect.top < topLimit;
-  const isOutLimitsBottom = elementRect.bottom > bottomLimit;
-  if (shouldLog) {
-    const x = {
-      topLimit,
-      bottomLimit,
-      top: elementRect.top,
-      bottom: elementRect.bottom,
-    };
-    console.log('isTouchElementOutOfLimits', x);
-  }
-  return isOutLimitsTop || isOutLimitsBottom;
-};
-
 const applyTouchElementContentMaxHeight = (element, elementContent) => {
   if (!element || !elementContent) return;
   const elementRect = element.getBoundingClientRect();
@@ -751,11 +731,8 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
 
     const currentWindowsDimensions = getWindowDimensions();
     const hasWindowChanged = !areWindowsDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions);
-    const isOutOflimits = isTouchElementOutOfLimits(element); // checks if the modal is badly positioned
     if (hasWindowChanged) {
       console.log('hasWindowChanged', hasWindowChanged);
-      console.log('isOutOflimits', isOutOflimits);
-      isTouchElementOutOfLimits(element, true);
       touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
       previousWindowsDimensions = currentWindowsDimensions;
     } else if (shouldDisplayCloseButton(element, touchCloseButton)) {
