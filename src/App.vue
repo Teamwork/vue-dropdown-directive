@@ -62,6 +62,7 @@
           arrow: true,
           scrollableContentClassName: 'dropdown-list',
           isReady: true,
+          touchCloseButton: true
         }"
       >
         Trigger
@@ -91,6 +92,7 @@
           arrow: true,
           scrollableContentClassName: 'dropdown-list',
           isReady: true,
+          touchCloseButton: true
         }"
       >
         Trigger
@@ -113,6 +115,38 @@
         </div>
       </div>
     </div>
+
+    <div class="row">
+      <div
+        v-dropdown-directive.bottom.center="{
+          id: 'text-trigger-dropdown-2',
+          arrow: true,
+          scrollableContentClassName: 'dropdown-list',
+          isReady: true,
+          touchCloseButton: true
+        }"
+      >
+        Trigger touch close button
+      </div>
+      <div
+        ref="customDropdown"
+        dropdown-id="text-trigger-dropdown-2"
+        class="dropdown"
+      >
+        <input type="text">
+        <div class="dropdown-list">
+          <div
+            v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7', 'Item 8', 'Item 9', 'Item 10', 'Item 12', 'Item 13', 'Item 14', 'Item 15', 'Item 16', 'Item 17', 'Item 18', 'Item 19', 'Item 20', 'Item 21', 'Item 22', 'Item 23', 'Item 24', 'Item 25', 'Item 26', 'Item 27', 'Item 28', 'Item 29', 'Item 30']"
+            class="dropdown-list__item"
+            :key="index"
+            @click="() => $refs.customDropdown.close()"
+          >
+            {{ item }}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row">
       <div style="text-align:center">
         long list and soft keyboard (test on IOS and software keyboard) <br>
@@ -169,7 +203,7 @@
           type="text"
           v-dropdown-directive.bottom.center="{
             id: 'text-input-dropdown-long-list-bottom',
-            arrow: false,
+            arrow: true,
             scrollableContentClassName: 'dropdown-list',
             isReady: true,
             preventPageScrolling: true

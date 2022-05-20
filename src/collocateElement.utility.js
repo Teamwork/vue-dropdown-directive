@@ -15,13 +15,15 @@ const allAvailableCollocations = [
 
 const maxThresholdInPixels = 20;
 
-const maxTouchThresholdInPixels = 10;
+const maxTouchVerticalThresholdInPixels = 30;
+
+const maxTouchHorizontalThresholdInPixels = 10;
 
 const maxThresholdInPercentage = 5;
 
 const minContentHeightInPixels = 150;
 
-const onViewportChangeIntervalInMs = 250;
+const onViewportChangeIntervalInMs = 200;
 
 const maxTouchElementWidthInPixels = 600;
 
@@ -67,6 +69,20 @@ const checkCollocationPositionAndAlignment = (current, next) => current.position
 
 const checkCollocationPosition = (current, next) => current.position === next.position;
 
+const getWindowDimensions = () => ({
+  winHeight: window.innerHeight,
+  visualHeight: window.visualViewport?.height || 0,
+  visualOffsetTop: window.visualViewport?.offsetTop || 0,
+});
+
+const areWindowsDimesionsEqual = (w1, w2) => (
+  w1.winHeight === w2.winHeight
+  && w1.visualHeight === w2.visualHeight
+  && w1.visualOffsetTop === w2.visualOffsetTop
+);
+
+const isDropdownOpen = (element) => element?.getAttribute('open') === 'true';
+
 // TODO: replace getElementContentExtraHeight by getContentExtraHeight and remove. (requires extensive testing for non touch devices)
 const getElementContentExtraHeight = (elementContent, elementHeight) => {
   if (!elementContent) { return; }
@@ -107,6 +123,14 @@ const getElementComputedMaxHeight = (element) => {
 const getElementComputedMaxWidth = (element) => {
   if (!element) { return; }
   return getComputedValueInPixels(element, 'max-width') || Number.MAX_SAFE_INTEGER;
+};
+
+const getComputedElementMaxDimensions = (element) => {
+  if (!element) { return { maxWidth: Number.MAX_SAFE_INTEGER, maxHeight: Number.MAX_SAFE_INTEGER }; }
+  return {
+    maxWidth: getElementComputedMaxWidth(element),
+    maxHeight: getElementComputedMaxHeight(element),
+  };
 };
 
 const getThresholdInPixels = (viewportDimension) => {
@@ -465,14 +489,42 @@ const applyOverflowToElementContent = (element, height) => {
   element.style.overflowY = 'auto';
 };
 
-const resetElementContentHeight = (element) => {
+const resetElementHeight = (element) => {
   if (!element || !element.style) { return; }
   element.style.height = 'auto';
 };
 
-const resetElementContentMaxHeight = (element) => {
+const resetElementMaxHeight = (element) => {
   if (!element || !element.style) { return; }
   element.style.maxHeight = '';
+};
+
+const resetTouchElementStyle = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.maxHeight = '';
+  element.style.maxWidth = '';
+};
+
+const resetTouchScroll = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.touchAction = '';
+  element.style.overscrollBehavior = '';
+};
+
+const disableTouchScroll = (element) => {
+  if (!element || !element.style) { return; }
+  element.style.touchAction = 'none';
+  element.style.overscrollBehavior = 'none';
+};
+
+const displayTouchCloseButton = (touchCloseButton) => {
+  if (!touchCloseButton || !touchCloseButton.style) { return; }
+  touchCloseButton.style.display = 'block';
+};
+
+const hideTouchCloseButton = (touchCloseButton) => {
+  if (!touchCloseButton || !touchCloseButton.style) { return; }
+  touchCloseButton.style.display = 'none';
 };
 
 const applyTresholdToCoordinates = (coordinates, viewport) => {
@@ -569,6 +621,37 @@ const getRequestedCollocation = (modifiers = {}, defaultPosition = 'bottom', def
   }
 };
 
+const isTouchCloseButtonDisplayed = (touchCloseButton) => touchCloseButton?.style.display === 'block';
+
+const isTouchDropdownFullHeight = (element, rect) => {
+  rect = rect || element.getBoundingClientRect();
+  const viewport = getViewPort();
+  const maxAvailableViewportHeight = viewport.height - (maxTouchVerticalThresholdInPixels * 3);
+  return rect.height > maxAvailableViewportHeight;
+};
+
+const shouldDisplayCloseButton = (element, touchCloseButton) => !isTouchCloseButtonDisplayed(touchCloseButton) && isTouchDropdownFullHeight(element);
+
+const isTouchElementOutOfLimits = (element, shouldLog) => {
+  if (!element) { return false; }
+  const viewport = getViewPort();
+  const elementRect = element.getBoundingClientRect();
+  const topLimit = window.scrollY;
+  const bottomLimit = window.scrollY + viewport.height;
+  const isOutLimitsTop = elementRect.top < topLimit;
+  const isOutLimitsBottom = elementRect.bottom > bottomLimit;
+  if (shouldLog) {
+    const x = {
+      topLimit,
+      bottomLimit,
+      top: elementRect.top,
+      bottom: elementRect.bottom,
+    };
+    console.log('isTouchElementOutOfLimits', x);
+  }
+  return isOutLimitsTop || isOutLimitsBottom;
+};
+
 const applyTouchElementContentMaxHeight = (element, elementContent) => {
   if (!element || !elementContent) return;
   const elementRect = element.getBoundingClientRect();
@@ -579,44 +662,62 @@ const applyTouchElementContentMaxHeight = (element, elementContent) => {
   elementContent.style.overflowY = 'auto';
 };
 
-const applyTouchElementCentering = (element) => {
+const applyTouchElementCentering = (element, touchCloseButton) => {
   if (!element) return;
   const viewport = getViewPort();
   const elementRect = element.getBoundingClientRect();
+  isTouchDropdownFullHeight(element, elementRect);
+  console.log('viewport', viewport);
+  console.log('elementRect', elementRect);
 
   const top = window.scrollY + (viewport.height / 2);
   const negativeMarginY = elementRect.height / 2;
+  console.log('top', top);
+  console.log('negativeMarginY', negativeMarginY);
   element.style.top = `${top}px`;
   element.style.marginTop = `-${negativeMarginY}px`;
 
   const left = window.scrollX + (viewport.width / 2);
-  const maxAvailableViewportWidth = viewport.width - (maxTouchThresholdInPixels * 2);
   const negativeMarginX = elementRect.width / 2;
+  console.log('left', left);
+  console.log('negativeMarginX', negativeMarginX);
   element.style.left = `${left}px`;
-  element.style.width = `${maxAvailableViewportWidth}px`;
   element.style.marginLeft = `-${negativeMarginX}px`;
+
+  if (touchCloseButton && isTouchDropdownFullHeight(element)) {
+    console.log('touchCloseButton', touchCloseButton);
+    touchCloseButton.style.top = `${top}px`;
+    touchCloseButton.style.marginTop = `-${negativeMarginY + 15}px`;
+    element.style.marginTop = `-${negativeMarginY - 15}px`;
+    displayTouchCloseButton(touchCloseButton);
+  } else {
+    hideTouchCloseButton(touchCloseButton);
+  }
 };
 
-const applyTouchElementStyle = (element) => {
-  const initialMaxDropdownHeight = getElementComputedMaxHeight(element);
-  const initialMaxDropdownWidth = getElementComputedMaxWidth(element);
+const applyTouchElementStyle = (element, touchCloseButton, computedElementDimensions) => {
   const viewport = getViewPort();
+  console.log('applyTouchElementStyle computed', computedElementDimensions);
 
-  const maxAvailableViewportHeight = viewport.height - (maxTouchThresholdInPixels * 2);
-  const maxAvailableHeight = Math.min(maxAvailableViewportHeight, initialMaxDropdownHeight);
+  const maxAvailableViewportHeight = viewport.height - (maxTouchVerticalThresholdInPixels * 2);
+  const maxAvailableHeight = Math.min(maxAvailableViewportHeight, computedElementDimensions.maxHeight);
+  console.log('maxAvailableHeight', maxAvailableHeight);
   element.style.maxHeight = `${maxAvailableHeight}px`;
 
-  const maxAvailableViewportWidth = viewport.width - (maxTouchThresholdInPixels * 2);
-  const maxAvailableWidth = Math.min(maxAvailableViewportWidth, initialMaxDropdownWidth, maxTouchElementWidthInPixels);
+  const maxAvailableViewportWidth = viewport.width - (maxTouchHorizontalThresholdInPixels * 2);
+  const maxAvailableWidth = Math.min(maxAvailableViewportWidth, computedElementDimensions.maxWidth, maxTouchElementWidthInPixels);
+  console.log('maxAvailableWidth', maxAvailableWidth);
   element.style.maxWidth = `${maxAvailableWidth}px`;
+  element.style.width = `${maxAvailableWidth}px`;
 
-  applyTouchElementCentering(element);
+  applyTouchElementCentering(element, touchCloseButton);
 };
 
-const touchCollocateElemeAt = (element, elementContent) => {
-  applyTouchElementStyle(element);
-  resetElementContentMaxHeight(elementContent);
+const touchCollocateElemeAt = (element, elementContent, touchCloseButton, computedElementDimensions) => {
+  applyTouchElementStyle(element, touchCloseButton, computedElementDimensions);
+  resetElementMaxHeight(elementContent);
   setTimeout(() => {
+    console.log('elementRect 2', element.getBoundingClientRect());
     applyTouchElementContentMaxHeight(element, elementContent);
   }, 0);
 };
@@ -624,24 +725,20 @@ const touchCollocateElemeAt = (element, elementContent) => {
 /* New version of IOS does not trigger any event when the viewport changes due to soft keyboard
  * so we need to use an interval to detect changes.
  * onViewportChangeInterval should be dismissed when the dropdown is closed */
-const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger, arrow) => {
+const touchDetectViewportChangesAndCollocate = (element, elementContent, elementPreventTouchScroll, touchCloseButton) => {
   let viewportChangeInterval;
   let viewportChangeIntervalID;
-  const getWindowDimensions = () => ({
-    winHeight: window.innerHeight,
-    visualHeight: window.visualViewport?.height || 0,
-    visualOffsetTop: window.visualViewport?.offsetTop || 0,
-  });
-  const areDimesionsEqual = (w1, w2) => (
-    w1.winHeight === w2.winHeight
-    && w1.visualHeight === w2.visualHeight
-    && w1.visualOffsetTop === w2.visualOffsetTop
-  );
-  const isDropdownOpen = () => element?.getAttribute('open') === 'true';
-
+  // gets dimesion set by css or inline previous to any handling of the modal
+  const computedElementDimensions = getComputedElementMaxDimensions(element);
+  touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
+  disableTouchScroll(elementPreventTouchScroll);
   let previousWindowsDimensions = getWindowDimensions();
+
   const resizeOnViewportChange = () => {
-    if (!isDropdownOpen()) {
+    if (!isDropdownOpen(element)) {
+      console.trace('dropdown been closed', viewportChangeIntervalID);
+      resetTouchElementStyle(element);
+      resetTouchScroll(elementPreventTouchScroll);
       clearInterval(viewportChangeInterval);
       element.viewportChangeIntervalID = null;
       return;
@@ -653,19 +750,25 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, trigger
     }
 
     const currentWindowsDimensions = getWindowDimensions();
-    if (!areDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions)) {
+    const hasWindowChanged = !areWindowsDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions);
+    const isOutOflimits = isTouchElementOutOfLimits(element); // checks if the modal is badly positioned
+    if (hasWindowChanged) {
+      console.log('hasWindowChanged', hasWindowChanged);
+      console.log('isOutOflimits', isOutOflimits);
+      isTouchElementOutOfLimits(element, true);
+      touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
       previousWindowsDimensions = currentWindowsDimensions;
-      touchCollocateElemeAt(element, elementContent, trigger, arrow, 0);
+    } else if (shouldDisplayCloseButton(element, touchCloseButton)) {
+      applyTouchElementCentering(element, touchCloseButton);
     }
   };
-  applyTouchElementStyle(element);
-  touchCollocateElemeAt(element, elementContent, trigger, arrow);
 
   /* Interval reference stored in dom element can't be used to clear the interval
    * so instead we use viewportChangeInterval and viewportChangeIntervalID for id comparison */
   viewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
   viewportChangeIntervalID = `${viewportChangeInterval}`;
   element.viewportChangeIntervalID = viewportChangeIntervalID;
+  console.trace('touch device', viewportChangeIntervalID);
 };
 
 const collocateElementAt = ({
@@ -673,13 +776,15 @@ const collocateElementAt = ({
   trigger,
   arrow,
   elementContent,
+  elementPreventTouchScroll,
+  touchCloseButton,
 } = {}, offset = 0, askedCollocation, availableCollocations) => {
   if (!element || !trigger) { return false; }
   if (hasTouchSupport) {
-    touchDetectViewportChangesAndCollocate(element, elementContent, trigger, arrow);
+    touchDetectViewportChangesAndCollocate(element, elementContent, elementPreventTouchScroll, touchCloseButton?.element);
     return true;
   }
-  resetElementContentHeight(elementContent);
+  resetElementHeight(elementContent);
   const elementRect = element.getBoundingClientRect();
   const triggerRect = trigger.getBoundingClientRect();
   const rect = {
