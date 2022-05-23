@@ -660,25 +660,18 @@ const applyTouchElementCentering = (element, touchCloseButton) => {
   const viewport = getViewPort();
   const elementRect = element.getBoundingClientRect();
   isTouchDropdownFullHeight(element, elementRect);
-  console.log('viewport', viewport);
-  console.log('elementRect', elementRect);
 
   const top = window.scrollY + (viewport.height / 2);
   const negativeMarginY = elementRect.height / 2;
-  console.log('top', top);
-  console.log('negativeMarginY', negativeMarginY);
   element.style.top = `${top}px`;
   element.style.marginTop = `-${negativeMarginY}px`;
 
   const left = window.scrollX + (viewport.width / 2);
   const negativeMarginX = elementRect.width / 2;
-  console.log('left', left);
-  console.log('negativeMarginX', negativeMarginX);
   element.style.left = `${left}px`;
   element.style.marginLeft = `-${negativeMarginX}px`;
 
   if (touchCloseButton && isTouchDropdownFullHeight(element)) {
-    console.log('touchCloseButton', touchCloseButton);
     touchCloseButton.style.top = `${top}px`;
     touchCloseButton.style.marginTop = `-${negativeMarginY + 15}px`;
     element.style.marginTop = `-${negativeMarginY - 15}px`;
@@ -690,16 +683,13 @@ const applyTouchElementCentering = (element, touchCloseButton) => {
 
 const applyTouchElementStyle = (element, touchCloseButton, computedElementDimensions) => {
   const viewport = getViewPort();
-  console.log('applyTouchElementStyle computed', computedElementDimensions);
 
   const maxAvailableViewportHeight = viewport.height - (maxTouchVerticalThresholdInPixels * 2);
   const maxAvailableHeight = Math.min(maxAvailableViewportHeight, computedElementDimensions.maxHeight);
-  console.log('maxAvailableHeight', maxAvailableHeight);
   element.style.maxHeight = `${maxAvailableHeight}px`;
 
   const maxAvailableViewportWidth = viewport.width - (maxTouchHorizontalThresholdInPixels * 2);
   const maxAvailableWidth = Math.min(maxAvailableViewportWidth, computedElementDimensions.maxWidth, maxTouchElementWidthInPixels);
-  console.log('maxAvailableWidth', maxAvailableWidth);
   element.style.maxWidth = `${maxAvailableWidth}px`;
   element.style.width = `${maxAvailableWidth}px`;
 
@@ -710,7 +700,6 @@ const touchCollocateElemeAt = (element, elementContent, touchCloseButton, comput
   applyTouchElementStyle(element, touchCloseButton, computedElementDimensions);
   resetElementMaxHeight(elementContent);
   setTimeout(() => {
-    console.log('elementRect 2', element.getBoundingClientRect());
     applyTouchElementContentMaxHeight(element, elementContent);
   }, 0);
 };
@@ -730,7 +719,6 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
 
   const resizeOnViewportChange = () => {
     if (!isDropdownOpen(element)) {
-      console.trace('dropdown been closed', viewportChangeIntervalID);
       resetTouchElementStyle(element);
       resetTouchScroll(elementPreventTouchScroll);
       clearInterval(viewportChangeInterval);
@@ -747,11 +735,9 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
     const currentElementDimensions = getElementDimensions(element);
     const hasWindowChanged = !areWindowsDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions);
     if (hasWindowChanged) {
-      console.log('hasWindowChanged', hasWindowChanged);
       touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
       previousWindowsDimensions = currentWindowsDimensions;
     } else if (shouldDisplayCloseButton(element, touchCloseButton) || !areElementDimesionsEqual(previousElementDimensions, currentElementDimensions)) {
-      console.log('hasElementChanged', !areElementDimesionsEqual(previousElementDimensions, currentElementDimensions));
       applyTouchElementCentering(element, touchCloseButton);
       previousElementDimensions = currentElementDimensions;
     }
@@ -762,7 +748,6 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
   viewportChangeInterval = setInterval(resizeOnViewportChange, onViewportChangeIntervalInMs);
   viewportChangeIntervalID = `${viewportChangeInterval}`;
   element.viewportChangeIntervalID = viewportChangeIntervalID;
-  console.trace('touch device', viewportChangeIntervalID);
 };
 
 const collocateElementAt = ({
