@@ -81,6 +81,19 @@ const areWindowsDimesionsEqual = (w1, w2) => (
   && w1.visualOffsetTop === w2.visualOffsetTop
 );
 
+const getElementDimensions = (element) => {
+  if (!element) { return { width: 0, height: 0 }; }
+  return {
+    width: element.offsetWidth,
+    height: element.offsetHeight,
+  };
+};
+
+const areElementDimesionsEqual = (e1, e2) => (
+  e1.width === e2.width
+  && e1.height === e2.height
+);
+
 const isDropdownOpen = (element) => element?.getAttribute('open') === 'true';
 
 // TODO: replace getElementContentExtraHeight by getContentExtraHeight and remove. (requires extensive testing for non touch devices)
@@ -713,6 +726,7 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
   touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
   disableTouchScroll(elementPreventTouchScroll);
   let previousWindowsDimensions = getWindowDimensions();
+  let previousElementDimensions = getElementDimensions(element);
 
   const resizeOnViewportChange = () => {
     if (!isDropdownOpen(element)) {
@@ -730,13 +744,16 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
     }
 
     const currentWindowsDimensions = getWindowDimensions();
+    const currentElementDimensions = getElementDimensions(element);
     const hasWindowChanged = !areWindowsDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions);
     if (hasWindowChanged) {
       console.log('hasWindowChanged', hasWindowChanged);
       touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
       previousWindowsDimensions = currentWindowsDimensions;
-    } else if (shouldDisplayCloseButton(element, touchCloseButton)) {
+    } else if (shouldDisplayCloseButton(element, touchCloseButton) || !areElementDimesionsEqual(previousElementDimensions, currentElementDimensions)) {
+      console.log('hasElementChanged', !areElementDimesionsEqual(previousElementDimensions, currentElementDimensions));
       applyTouchElementCentering(element, touchCloseButton);
+      previousElementDimensions = currentElementDimensions;
     }
   };
 
