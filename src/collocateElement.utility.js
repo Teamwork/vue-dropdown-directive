@@ -696,7 +696,7 @@ const applyTouchElementStyle = (element, touchCloseButton, computedElementDimens
   applyTouchElementCentering(element, touchCloseButton);
 };
 
-const touchCollocateElemeAt = (element, elementContent, touchCloseButton, computedElementDimensions) => {
+const touchCollocateElementAt = (element, elementContent, touchCloseButton, computedElementDimensions) => {
   applyTouchElementStyle(element, touchCloseButton, computedElementDimensions);
   resetElementMaxHeight(elementContent);
   setTimeout(() => {
@@ -712,7 +712,7 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
   let viewportChangeIntervalID;
   // gets dimesion set by css or inline previous to any handling of the modal
   const computedElementDimensions = getComputedElementMaxDimensions(element);
-  touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
+  touchCollocateElementAt(element, elementContent, touchCloseButton, computedElementDimensions);
   disableTouchScroll(elementPreventTouchScroll);
   let previousWindowsDimensions = getWindowDimensions();
   let previousElementDimensions = getElementDimensions(element);
@@ -735,7 +735,7 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
     const currentElementDimensions = getElementDimensions(element);
     const hasWindowChanged = !areWindowsDimesionsEqual(previousWindowsDimensions, currentWindowsDimensions);
     if (hasWindowChanged) {
-      touchCollocateElemeAt(element, elementContent, touchCloseButton, computedElementDimensions);
+      touchCollocateElementAt(element, elementContent, touchCloseButton, computedElementDimensions);
       previousWindowsDimensions = currentWindowsDimensions;
     } else if (shouldDisplayCloseButton(element, touchCloseButton) || !areElementDimesionsEqual(previousElementDimensions, currentElementDimensions)) {
       applyTouchElementCentering(element, touchCloseButton);
