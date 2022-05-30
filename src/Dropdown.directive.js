@@ -118,7 +118,12 @@ const detachListeners = (temporaryHideAllDropdownsRef) => {
 };
 
 const openDropdown = ({
-  dropdown, arrow, backgroundMask, scrollableContentClassName,
+  dropdown,
+  arrow,
+  backgroundMask,
+  scrollableContentClassName,
+  disableTouchScrollClassName,
+  touchCloseButton,
 }, {
   offset,
   collocation,
@@ -134,6 +139,10 @@ const openDropdown = ({
     document.body.appendChild(backgroundMask.element);
     backgroundMask.element.style.display = 'block';
   }
+  if (touchCloseButton.element) {
+    document.body.appendChild(touchCloseButton.element);
+    touchCloseButton.element.style.display = 'none';
+  }
   dropdown.setAttribute('open', true);
   moveElementFromOriginalPlaceToBodyRoot(dropdown);
   dropdown.style.display = 'block';
@@ -144,9 +153,11 @@ const openDropdown = ({
   const isCollocated = collocateElementAt({
     trigger,
     element: dropdown,
+    touchCloseButton,
     elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
+    elementPreventTouchScroll: document.querySelector(`.${disableTouchScrollClassName}`),
     arrow,
-  }, offset, collocation, availableCollocations, hasTouchSupport);
+  }, offset, collocation, availableCollocations);
   if (!isCollocated) {
     trigger.click?.();
     return;
@@ -155,12 +166,24 @@ const openDropdown = ({
   onOpen?.();
 };
 
-const closeDropdown = ({ dropdown, arrow, backgroundMask }, { onClose, temporaryHideAllDropdownsRef }, keepListenersAttached) => {
+const closeDropdown = ({
+  dropdown,
+  arrow,
+  backgroundMask,
+  touchCloseButton,
+}, {
+  onClose,
+  temporaryHideAllDropdownsRef,
+}, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
   if (backgroundMask.element) {
     backgroundMask.element.parentNode.removeChild(backgroundMask.element);
     backgroundMask.element.style.display = 'none';
+  }
+  if (touchCloseButton.element) {
+    touchCloseButton.element.parentNode.removeChild(touchCloseButton.element);
+    touchCloseButton.element.style.display = 'none';
   }
   dropdown.setAttribute('open', false);
   moveElementBackToOriginalPlace(dropdown);
@@ -183,22 +206,54 @@ const onTriggerClick = (event, trigger, dropdownElementsSet, extra) => {
   openDropdown(dropdownElementsSet, extra, trigger);
 };
 
-const recalculateDropdownPosition = ({ dropdown, arrow, scrollableContentClassName }, extra, trigger) => {
+const recalculateDropdownPosition = ({
+  dropdown,
+  arrow,
+  scrollableContentClassName,
+  disableTouchScrollClassName,
+  touchCloseButton,
+}, extra, trigger) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
   const hasElementBeenCollocated = collocateElementAt({
     trigger,
     element: dropdown,
+    touchCloseButton,
     elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
+    elementPreventTouchScroll: document.querySelector(`.${disableTouchScrollClassName}`),
     arrow,
   }, extra.offset, extra.collocation, extra.availableCollocations, hasTouchSupport);
   if (hasElementBeenCollocated) { return; }
   closeDropdown({ dropdown, arrow, scrollableContentClassName }, extra, false);
 };
 
-const initBackgroundMask = (id, zIndex) => {
+const initCloseButton = (id, closeButtonColor, touchCloseButtonOpacity, zIndex) => {
+  const element = document.createElement('button');
+  element.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" style="width:1em; height:1em; stroke:${closeButtonColor}; fill:${closeButtonColor};" class="tw-icon dropdown-directive-close">
+      <path data-v-640b9ed6="" d="M9.556 8L15 2.556 13.444 1 8 6.444 2.556 1 1 2.556 6.444 8 1 13.444 2.556 15 8 9.556 13.444 15 15 13.444 9.556 8z"></path>
+    </svg>
+  `;
+  element.id = `${id}-close-btn`;
+  element.style.display = 'block';
+  element.style.position = 'absolute';
+  element.style.top = '10px';
+  element.style.right = '10px';
+  element.style.witdh = '20px';
+  element.style.height = '20px';
+  element.style.zIndex = zIndex;
+  element.style.opacity = touchCloseButtonOpacity;
+  element.style.color = 'transparent';
+  element.style.background = 'transparent';
+  element.style.border = 'none';
+  return {
+    element,
+  };
+};
+
+const initBackgroundMask = (id, backgroundMaskOpacity, zIndex) => {
   const element = document.createElement('div');
-  element.id = id;
+  element.id = `${id}-bg-mask`;
   element.style.display = 'none';
   element.style.position = 'absolute';
   element.style.top = 0;
@@ -206,7 +261,7 @@ const initBackgroundMask = (id, zIndex) => {
   element.style.bottom = 0;
   element.style.right = 0;
   element.style.zIndex = zIndex;
-  element.style.opacity = 0.5;
+  element.style.opacity = backgroundMaskOpacity;
   element.style.backgroundColor = '#000';
   return {
     element,
@@ -215,7 +270,7 @@ const initBackgroundMask = (id, zIndex) => {
 
 const initArrow = (id, arrowColor, zIndex) => {
   const element = document.createElement('span');
-  element.id = id;
+  element.id = `${id}-arrow`;
   element.style.display = 'none';
   element.style.position = 'absolute';
   element.style.zIndex = zIndex;
@@ -240,7 +295,12 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     id,
     modifiers,
     scrollableContentClassName,
+    disableTouchScrollClassName,
     otherScrollableContentClassNames = [],
+    touchCloseButton = true,
+    touchCloseButtonColor = '#fff',
+    touchCloseButtonOpacity = 1,
+    backgroundMaskOpacity = 0.5,
     arrow,
     arrowColor = '#fff',
     zIndex = 9999,
@@ -262,8 +322,10 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
   const dropdownElementsSet = {
     dropdown,
     arrow: arrow ? initArrow(id, arrowColor, zIndex) : {},
-    backgroundMask: hasTouchSupport ? initBackgroundMask(id, zIndex) : {},
+    backgroundMask: hasTouchSupport ? initBackgroundMask(id, backgroundMaskOpacity, zIndex) : {},
+    touchCloseButton: touchCloseButton ? initCloseButton(id, touchCloseButtonColor, touchCloseButtonOpacity, zIndex) : {},
     scrollableContentClassName,
+    disableTouchScrollClassName,
   };
   const debounceDelayInMilliseconds = 500;
   const debouncedTemporaryHideAllDropdowns = debounce(openTemporaryClosedDropdowns, debounceDelayInMilliseconds);
