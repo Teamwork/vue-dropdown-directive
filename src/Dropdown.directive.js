@@ -165,7 +165,7 @@ const openDropdown = ({
   // timeout fixes a bug where same open click event triggers the closeDropdown event
   setTimeout(() => {
     attachListeners(temporaryHideAllDropdownsRef);
-  }, 0);
+  }, 200);
   onOpen?.();
 };
 
