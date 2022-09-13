@@ -162,7 +162,10 @@ const openDropdown = ({
     trigger.click?.();
     return;
   }
-  attachListeners(temporaryHideAllDropdownsRef);
+  // timeout fixes a bug where same open click event triggers the closeDropdown event
+  setTimeout(() => {
+    attachListeners(temporaryHideAllDropdownsRef);
+  }, 200);
   onOpen?.();
 };
 
