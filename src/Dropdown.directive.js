@@ -98,7 +98,21 @@ const closeOtherDropdowns = (currentDropdown) => {
   dropdowns?.filter(filterByCurrentDropdown).forEach(closeDropdown);
 };
 
-const attachListeners = (temporaryHideAllDropdownsRef) => {
+const attachScrollContentListener = (elementContent, onElementContentScrollScroll) => {
+  if (onElementContentScrollScroll && elementContent && !elementContent.isListeningOncroll) {
+    elementContent.isListeningOncroll = true;
+    elementContent.addEventListener('scroll', onElementContentScrollScroll);
+  }
+};
+
+const detachScrollContentListener = (elementContent, onElementContentScrollScroll) => {
+  if (onElementContentScrollScroll && elementContent && elementContent.isListeningOncroll) {
+    elementContent.isListeningOncroll = false;
+    elementContent.removeEventListener('scroll', onElementContentScrollScroll);
+  }
+};
+
+const attachListeners = (temporaryHideAllDropdownsRef, elementContent, onElementContentScrollScroll) => {
   document.addEventListener('click', closeAllDropdowns);
   document.body.addEventListener('click', closeAllDropdowns);
   document.addEventListener('keyup', closeDropdownsOnEscKey);
@@ -106,15 +120,17 @@ const attachListeners = (temporaryHideAllDropdownsRef) => {
   if (hasTouchSupport) { return; }
   document.addEventListener('scroll', temporaryHideAllDropdownsRef, true);
   window.addEventListener('resize', temporaryHideAllDropdownsRef);
+  attachScrollContentListener(elementContent, onElementContentScrollScroll);
 };
 
-const detachListeners = (temporaryHideAllDropdownsRef) => {
+const detachListeners = (temporaryHideAllDropdownsRef, elementContent, onElementContentScrollScroll) => {
   document.removeEventListener('click', closeAllDropdowns);
   document.body.removeEventListener('click', closeAllDropdowns);
   document.removeEventListener('keyup', closeDropdownsOnEscKey);
   document.body.removeEventListener('keyup', closeDropdownsOnEscKey);
   document.removeEventListener('scroll', temporaryHideAllDropdownsRef, true);
   window.removeEventListener('resize', temporaryHideAllDropdownsRef);
+  detachScrollContentListener(elementContent, onElementContentScrollScroll);
 };
 
 const openDropdown = ({
@@ -129,6 +145,7 @@ const openDropdown = ({
   collocation,
   availableCollocations,
   onOpen,
+  onElementContentScrollScroll,
   keepOthersOpen,
   temporaryHideAllDropdownsRef,
 }, trigger) => {
@@ -150,11 +167,12 @@ const openDropdown = ({
     document.body.appendChild(arrow.element);
     arrow.element.style.display = 'block';
   }
+  const elementContent = dropdown.querySelector(`.${scrollableContentClassName}`);
   const isCollocated = collocateElementAt({
     trigger,
     element: dropdown,
     touchCloseButton,
-    elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
+    elementContent,
     elementPreventTouchScroll: document.querySelector(`.${disableTouchScrollClassName}`),
     arrow,
   }, offset, collocation, availableCollocations);
@@ -164,8 +182,8 @@ const openDropdown = ({
   }
   // timeout fixes a bug where same open click event triggers the closeDropdown event
   setTimeout(() => {
-    attachListeners(temporaryHideAllDropdownsRef);
-  }, 200);
+    attachListeners(temporaryHideAllDropdownsRef, elementContent, onElementContentScrollScroll);
+  }, 0);
   onOpen?.();
 };
 
@@ -174,8 +192,10 @@ const closeDropdown = ({
   arrow,
   backgroundMask,
   touchCloseButton,
+  scrollableContentClassName,
 }, {
   onClose,
+  onElementContentScrollScroll,
   temporaryHideAllDropdownsRef,
 }, keepListenersAttached) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
@@ -195,7 +215,10 @@ const closeDropdown = ({
     arrow.element.parentNode.removeChild(arrow.element);
     arrow.element.style.display = 'none';
   }
-  if (!keepListenersAttached) { detachListeners(temporaryHideAllDropdownsRef); }
+  if (!keepListenersAttached) {
+    const elementContent = dropdown.querySelector(`.${scrollableContentClassName}`);
+    detachListeners(temporaryHideAllDropdownsRef, elementContent, onElementContentScrollScroll);
+  }
   onClose?.();
 };
 
@@ -218,14 +241,17 @@ const recalculateDropdownPosition = ({
 }, extra, trigger) => {
   const isDropdownOpen = dropdown.getAttribute('open') === 'true';
   if (!isDropdownOpen) { return; }
+  const elementContent = dropdown.querySelector(`.${scrollableContentClassName}`);
+  attachScrollContentListener(elementContent, extra.onElementContentScrollScroll);
   const hasElementBeenCollocated = collocateElementAt({
     trigger,
     element: dropdown,
     touchCloseButton,
-    elementContent: dropdown.querySelector(`.${scrollableContentClassName}`),
+    elementContent,
     elementPreventTouchScroll: document.querySelector(`.${disableTouchScrollClassName}`),
     arrow,
   }, extra.offset, extra.collocation, extra.availableCollocations, hasTouchSupport);
+
   if (hasElementBeenCollocated) { return; }
   closeDropdown({ dropdown, arrow, scrollableContentClassName }, extra, false);
 };
@@ -310,6 +336,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     offsetFromTrigger = 0,
     onOpen,
     onClose,
+    onElementContentScrollScroll,
     keepOtherDropdownsOpen,
     keepDropdownsOpenOnUIEvent = true,
     openOnlyProgrammatically,
@@ -343,6 +370,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
     }),
     onOpen,
     onClose,
+    onElementContentScrollScroll,
     keepOthersOpen: keepOtherDropdownsOpen,
     temporaryHideAllDropdownsRef: (event) => temporaryHideAllDropdowns(
       event,

@@ -11,6 +11,8 @@
 
 ## Installation
 
+** Requires Node 14 to run and build the npm package.
+
 ```bash
 $ npm install @teamwork/vue-dropdown-directive
 ```
