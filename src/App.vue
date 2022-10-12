@@ -19,8 +19,8 @@
         <div class="dropdown-list">
           <div
             v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3']"
-            class="dropdown-list__item"
             :key="index"
+            class="dropdown-list__item"
             @click="() => $refs.customDropdown.close()"
           >
             {{ item }}
@@ -30,13 +30,13 @@
     </div>
     <div class="row">
       <input
-        type="text"
         v-dropdown-directive.bottom.center="{
           id: 'text-input-dropdown',
           arrow: true,
           scrollableContentClassName: 'dropdown-list',
           isReady: true,
         }"
+        type="text"
       >
       <div
         ref="customDropdown"
@@ -46,8 +46,8 @@
         <div class="dropdown-list">
           <div
             v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3']"
-            class="dropdown-list__item"
             :key="index"
+            class="dropdown-list__item"
             @click="() => $refs.customDropdown.close()"
           >
             {{ item }}
@@ -76,8 +76,8 @@
         <div class="dropdown-list">
           <div
             v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', ]"
-            class="dropdown-list__item"
             :key="index"
+            class="dropdown-list__item"
             @click="() => $refs.customDropdown.close()"
           >
             {{ item }}
@@ -106,8 +106,8 @@
         <div class="dropdown-list">
           <div
             v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', 'Item 1', 'Item 2', 'Item 3', ]"
-            class="dropdown-list__item"
             :key="index"
+            class="dropdown-list__item"
             @click="() => $refs.customDropdown.close()"
           >
             {{ item }}
@@ -137,8 +137,8 @@
         <div class="dropdown-list">
           <div
             v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7', 'Item 8', 'Item 9', 'Item 10', 'Item 12', 'Item 13', 'Item 14', 'Item 15', 'Item 16', 'Item 17', 'Item 18', 'Item 19', 'Item 20', 'Item 21', 'Item 22', 'Item 23', 'Item 24', 'Item 25', 'Item 26', 'Item 27', 'Item 28', 'Item 29', 'Item 30']"
-            class="dropdown-list__item"
             :key="index"
+            class="dropdown-list__item"
             @click="() => $refs.customDropdown.close()"
           >
             {{ item }}
@@ -164,7 +164,6 @@
         </button>
         <br>
         <input
-          type="text"
           v-dropdown-directive.bottom.center="{
             id: 'text-input-dropdown-long-list',
             arrow: false,
@@ -172,6 +171,7 @@
             isReady: true,
             preventPageScrolling: true
           }"
+          type="text"
         >
         <div
           ref="customDropdown"
@@ -181,8 +181,8 @@
           <div class="dropdown-list">
             <div
               v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7', 'Item 8', 'Item 9', 'Item 10', 'Item 11', 'Item 12']"
-              class="dropdown-list__item"
               :key="index"
+              class="dropdown-list__item"
               @click="() => $refs.customDropdown.close()"
             >
               {{ item }}
@@ -200,7 +200,6 @@
       <div style="text-align:center">
         long list and soft keyboard - bootom of page (test on IOS and software keyboard) <br>
         <input
-          type="text"
           v-dropdown-directive.bottom.center="{
             id: 'text-input-dropdown-long-list-bottom',
             arrow: true,
@@ -208,6 +207,7 @@
             isReady: true,
             preventPageScrolling: true
           }"
+          type="text"
         >
         <div
           ref="customDropdown"
@@ -217,8 +217,8 @@
           <div class="dropdown-list">
             <div
               v-for="(item, index) in ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7', 'Item 8', 'Item 9', 'Item 10', 'Item 11', 'Item 12']"
-              class="dropdown-list__item"
               :key="index"
+              class="dropdown-list__item"
               @click="() => $refs.customDropdown.close()"
             >
               {{ item }}
@@ -230,18 +230,10 @@
   </div>
 </template>
 
-<script>
-import DropdownDirective from './Dropdown.directive';
+<script setup>
+import vDropdownDirective from './Dropdown.directive';
 
-export default {
-  name: 'App',
-  directives: {
-    DropdownDirective,
-  },
-  data: () => ({
-    isLargePage: true,
-  }),
-};
+const isLargePage = true;
 </script>
 
 <style>
@@ -268,7 +260,7 @@ html, body {
 }
 
 button {
-  border: solid 1px rgba(#000, 0.1);
+  border: solid 1px rgba(0, 0, 0, 0.1);
   border-radius: 3px;
   background-color: #f5f7fa;
   height: 30px;
