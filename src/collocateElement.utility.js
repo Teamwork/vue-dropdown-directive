@@ -750,6 +750,7 @@ const touchDetectViewportChangesAndCollocate = (element, elementContent, element
   element.viewportChangeIntervalID = viewportChangeIntervalID;
 };
 
+// eslint-disable-next-line default-param-last
 const collocateElementAt = ({
   element,
   trigger,
@@ -757,6 +758,7 @@ const collocateElementAt = ({
   elementContent,
   elementPreventTouchScroll,
   touchCloseButton,
+// eslint-disable-next-line default-param-last
 } = {}, offset = 0, askedCollocation, availableCollocations) => {
   if (!element || !trigger) { return false; }
   if (hasTouchSupport) {

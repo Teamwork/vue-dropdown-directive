@@ -293,7 +293,7 @@ const initDropdown = (dropdown, id, zIndex) => {
   dropdown.setAttribute('open', false);
 };
 
-const mountDropdown = (trigger, value = {}, nativeModifiers) => {
+const mountDropdown = (trigger, value = {}, nativeModifiers) => { // eslint-disable-line default-param-last
   const {
     id,
     modifiers,
@@ -365,15 +365,15 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => {
 };
 
 const DropdownDirective = {
-  inserted(trigger, { value = {}, modifiers }) {
+  mounted(trigger, { value = {}, modifiers }) {
     if (value.isReady === false) { return; }
     mountDropdown(trigger, value, modifiers);
   },
-  update(trigger, { value = {}, modifiers }) {
+  updated(trigger, { value = {}, modifiers }) {
     if (value.isReady === false || trigger.isMounted) { return; }
     mountDropdown(trigger, value, modifiers);
   },
-  unbind(trigger, { value = {} }) {
+  unmounted(trigger, { value = {} }) {
     trigger.removeEventListener('click', trigger.click);
     trigger.click = null;
     const dropdown = document.querySelector(`[dropdown-id="${value.id}"]`);

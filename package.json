@@ -1,6 +1,6 @@
 {
   "name": "@teamwork/vue-dropdown-directive",
-  "version": "2.5.1",
+  "version": "3.0.0",
   "description": "A vue.js directive for handling dropdowns",
   "author": "Mattia Uggè (matcmd) <mattia.ugge@teamwork.com>",
   "scripts": {
@@ -13,34 +13,36 @@
   "main": "dist/vue-dropdown-directive.umd.js",
   "unpkg": "dist/vue-dropdown-directive.umd.min.js",
   "dependencies": {
-    "core-js": "^3.7.0",
-    "debounce": "^1.2.0",
-    "vue": "^2.6.12"
+    "core-js": "^3.26.0",
+    "debounce": "^1.2.1",
+    "vue": "^3.2.41"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.9",
-    "@vue/cli-plugin-eslint": "~4.5.9",
-    "@vue/cli-plugin-unit-jest": "^4.5.9",
-    "@vue/cli-service": "~4.5.9",
-    "@vue/eslint-config-airbnb": "^5.1.0",
-    "@vue/test-utils": "1.1.1",
+    "@babel/eslint-parser": "^7.19.1",
+    "@vue/cli-plugin-babel": "~5.0.8",
+    "@vue/cli-plugin-eslint": "~5.0.8",
+    "@vue/cli-plugin-unit-jest": "^5.0.8",
+    "@vue/cli-service": "~5.0.8",
+    "@vue/compiler-sfc": "^3.2.41",
+    "@vue/eslint-config-airbnb": "^7.0.0",
+    "@vue/test-utils": "2.2.1",
+    "@vue/vue3-jest": "^27.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.13.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-vue": "^7.1.0",
-    "vue-template-compiler": "^2.6.12"
+    "eslint": "^8.26.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-vue": "^9.7.0"
   },
   "eslintConfig": {
-    "root": true,
     "env": {
-      "node": true
+      "browser": true
     },
     "extends": [
-      "plugin:vue/strongly-recommended",
-      "@vue/airbnb"
+      "airbnb-base",
+      "plugin:vue/vue3-recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser",
+      "sourceType": "module"
     },
     "rules": {
       "max-len": 0,
@@ -67,9 +69,6 @@
   "bugs": {
     "url": "https://github.com/Teamwork/vue-dropdown-directive/issues"
   },
-  "contributors": [
-    "Vladimir Shafikov <vladimir.shafikov@teamwork.com>"
-  ],
   "gitHooks": {
     "pre-commit": "vue-cli-service lint"
   },
@@ -91,5 +90,9 @@
   },
   "files": [
     "dist/*"
-  ]
+  ],
+  "engines": {
+    "npm": "8.11.0",
+    "node": "17.9.1"
+  }
 }
