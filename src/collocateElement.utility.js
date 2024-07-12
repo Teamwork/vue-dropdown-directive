@@ -498,13 +498,14 @@ const applyCoordinatesToElement = (element, coordinates) => {
 
 const applyOverflowToElementContent = (element, height) => {
   if (!element || !element.style || !height) { return; }
-  element.style.height = `${height}px`;
+  element.style.maxHeight = `${height}px`;
   element.style.overflowY = 'auto';
 };
 
 const resetElementHeight = (element) => {
   if (!element || !element.style) { return; }
   element.style.height = 'auto';
+  element.style.maxHeight = 'auto';
 };
 
 const resetElementMaxHeight = (element) => {
