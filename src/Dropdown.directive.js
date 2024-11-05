@@ -4,6 +4,7 @@ import {
   getAvailableCollocations,
   getRequestedCollocation,
 } from './collocateElement.utility';
+import { blockParentsScroll, unblockAllScrolls, unblockParentsScrolls } from './blockScrollStartegy';
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 
@@ -82,6 +83,7 @@ const closeAllDropdowns = (event) => {
   const dropdowns = Array.from(document.querySelectorAll('[dropdown-id]'));
   const closeDropdown = (dropdown) => dropdown.close?.();
   dropdowns?.forEach(closeDropdown);
+  unblockAllScrolls();
 };
 
 const closeDropdownsOnEscKey = (event) => {
@@ -165,6 +167,7 @@ const openDropdown = ({
   // timeout fixes a bug where same open click event triggers the closeDropdown event
   setTimeout(() => {
     attachListeners(temporaryHideAllDropdownsRef);
+    blockParentsScroll(dropdown);
   }, 200);
   onOpen?.();
 };
@@ -196,6 +199,7 @@ const closeDropdown = ({
     arrow.element.style.display = 'none';
   }
   if (!keepListenersAttached) { detachListeners(temporaryHideAllDropdownsRef); }
+  unblockParentsScrolls(dropdown);
   onClose?.();
 };
 
