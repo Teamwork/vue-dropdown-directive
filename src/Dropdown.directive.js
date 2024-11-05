@@ -67,7 +67,7 @@ const temporaryHideAllDropdowns = (
   dropdownId,
 ) => {
   const eventParentIds = event?.path?.map(({ id }) => id) || [];
-  const isEventFromInsideDropdown = eventParentIds.includes(dropdownId);
+  const isEventFromInsideDropdown = eventParentIds.includes(dropdownId) || !!event.target.closest('[dropdown-id]');
   const isScrollEvent = event.type === 'scroll';
   const shouldIgnoreEvent = isEventFromInsideDropdown && isScrollEvent;
   if (shouldIgnoreEvent) { return; } // prevents scroll events from inside dropdown hiding dropdowns https://github.com/Teamwork/deskclient/pull/3600#issue-613566610
