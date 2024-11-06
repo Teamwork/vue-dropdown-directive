@@ -326,7 +326,6 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => { // eslint-disa
     if (dropdown.isOpen() && lastHeight !== dropdown.clientHeight) {
       recalculateDropdownPosition(dropdownElementsSet, extra);
       lastHeight = dropdown.clientHeight;
-      console.log('lastHeight', lastHeight);
     }
   }, quickTimeout);
   if (ResizeObserver) {
