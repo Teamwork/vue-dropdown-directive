@@ -60,11 +60,11 @@ function getBlockedScrollParents(el, stopAt) {
 
 /**
  * adapted from lightSpeed
- * @param {Object} dropdown
+ * @param {Object} trigger
  */
-export function blockParentsScroll(dropdown) { // eslint-disable-line import/prefer-default-export
+export function blockParentsScroll(trigger) { // eslint-disable-line import/prefer-default-export
   let scrollElements = [];
-  scrollElements = [...new Set(getScrollParents(dropdown))];
+  scrollElements = [...new Set(getScrollParents(trigger))];
   scrollElements.forEach((el) => {
     el.style.overflow = 'hidden';
     el.style.touchAction = 'none';
@@ -73,9 +73,10 @@ export function blockParentsScroll(dropdown) { // eslint-disable-line import/pre
   });
 }
 
-export function unblockParentsScrolls(dropdown) { // eslint-disable-line import/prefer-default-export
+export function unblockParentsScrolls(trigger) { // eslint-disable-line import/prefer-default-export
+  if (!trigger) { return; }
   let scrollElements = [];
-  scrollElements = [...new Set(getBlockedScrollParents(dropdown))];
+  scrollElements = [...new Set(getBlockedScrollParents(trigger))];
   scrollElements.forEach((el) => {
     el.style.overflow = '';
     el.style.touchAction = '';
