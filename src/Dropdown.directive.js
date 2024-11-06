@@ -7,6 +7,7 @@ import {
 import { blockParentsScroll, unblockAllScrolls, unblockParentsScrolls } from './blockScrollStartegy';
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
+const quickTimeout = 300;
 
 const moveElementFromOriginalPlaceToBodyRoot = (element) => {
   const hasElementMoved = element.getAttribute('has-element-moved') === 'true';
@@ -127,11 +128,11 @@ const openDropdown = ({
     trigger.click?.();
     return;
   }
+  blockParentsScroll(trigger);
   // timeout fixes a bug where same open click event triggers the closeDropdown event
   setTimeout(() => {
     attachListeners();
-    blockParentsScroll(trigger);
-  }, 200);
+  }, quickTimeout);
   onOpen?.();
 };
 
@@ -313,6 +314,7 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => { // eslint-disa
     onClose,
     keepOthersOpen: keepOtherDropdownsOpen,
   };
+  let lastHeight = dropdown.clientHeight;
   trigger.click = (event) => onTriggerClick(event, dropdownElementsSet, extra);
   dropdown.open = () => openDropdown(dropdownElementsSet, extra);
   dropdown.isOpen = () => dropdown.getAttribute('open') === 'true';
@@ -320,6 +322,20 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => { // eslint-disa
   dropdown.closeOthers = () => closeOtherDropdowns(dropdown);
   dropdown.closeAll = closeAllDropdowns;
   dropdown.recalculatePosition = () => recalculateDropdownPosition(dropdownElementsSet, extra);
+  dropdown.debouncedRecalculate = debounce(() => {
+    if (dropdown.isOpen() && lastHeight !== dropdown.clientHeight) {
+      recalculateDropdownPosition(dropdownElementsSet, extra);
+      lastHeight = dropdown.clientHeight;
+      console.log('lastHeight', lastHeight);
+    }
+  }, quickTimeout);
+  if (ResizeObserver) {
+    setTimeout(() => {
+      lastHeight = dropdown.clientHeight;
+      dropdown.resizeObserver = new ResizeObserver(() => dropdown.debouncedRecalculate());
+      dropdown.resizeObserver.observe(dropdown);
+    }, quickTimeout); // give so time for the dropdown to be rendered
+  }
   if (!openOnlyProgrammatically) { trigger.addEventListener('click', trigger.click); }
   trigger.isMounted = true;
 };
@@ -345,6 +361,11 @@ const DropdownDirective = {
     dropdown.closeOthers = null;
     dropdown.closeAll = null;
     dropdown.recalculatePosition = null;
+    dropdown.debouncedRecalculate = null;
+    if (dropdown.resizeObserver) {
+      dropdown.resizeObserver.disconnect();
+      dropdown.resizeObserver = null;
+    }
   },
 };
 
