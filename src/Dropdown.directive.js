@@ -4,7 +4,11 @@ import {
   getAvailableCollocations,
   getRequestedCollocation,
 } from './collocateElement.utility';
-import { blockParentsScroll, unblockAllScrolls, unblockParentsScrolls } from './blockScrollStartegy';
+import {
+  blockParentsScroll,
+  unblockAllScrolls,
+  unblockParentsScrolls,
+} from './blockScrollStrategy';
 
 const hasTouchSupport = ('ontouchstart' in document.documentElement);
 const quickTimeout = 300;
