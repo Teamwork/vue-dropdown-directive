@@ -1,6 +1,6 @@
 {
   "name": "@teamwork/vue-dropdown-directive",
-  "version": "3.0.5-beta.1",
+  "version": "3.0.5",
   "description": "A vue.js directive for handling dropdowns",
   "author": "Mattia Uggè (matcmd) <mattia.ugge@teamwork.com>",
   "scripts": {
