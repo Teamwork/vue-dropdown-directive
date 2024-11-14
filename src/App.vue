@@ -191,7 +191,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div>
       <div :class="{ large_page: isLargePage }">
         &nbsp;
       </div>
@@ -240,7 +240,20 @@ const isLargePage = true;
 html, body {
   margin: 0;
   position: relative;
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.js-scroll-blocked {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+  .js-scroll-blocked {
+    padding-right: var(--scrollbar-width);
+  }
 }
 
 #app {
@@ -251,6 +264,8 @@ html, body {
   align-content: center;
   flex-direction: column;
   width: 100%;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .row {
