@@ -327,15 +327,16 @@ const mountDropdown = (trigger, value = {}, nativeModifiers) => { // eslint-disa
   dropdown.closeAll = closeAllDropdowns;
   dropdown.recalculatePosition = () => recalculateDropdownPosition(dropdownElementsSet, extra);
   dropdown.debouncedRecalculate = debounce(() => {
-    if (dropdown.isOpen() && lastHeight !== dropdown.clientHeight) {
+    if (dropdown.isOpen?.() && lastHeight !== dropdown.clientHeight) {
       recalculateDropdownPosition(dropdownElementsSet, extra);
       lastHeight = dropdown.clientHeight;
     }
   }, quickTimeout);
   if (ResizeObserver) {
     setTimeout(() => {
+      if (!dropdown.debouncedRecalculate || !dropdown.isOpen) { return; }
       lastHeight = dropdown.clientHeight;
-      dropdown.resizeObserver = new ResizeObserver(() => dropdown.debouncedRecalculate());
+      dropdown.resizeObserver = new ResizeObserver(() => dropdown.debouncedRecalculate?.());
       dropdown.resizeObserver.observe(dropdown);
     }, quickTimeout); // give so time for the dropdown to be rendered
   }
